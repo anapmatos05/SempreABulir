@@ -1,10 +1,11 @@
-<ion-content [fullscreen]="true" class="ion-padding" style="--background: #fcfcfc; --padding-top: 74px;">
+<ion-content [fullscreen]="true" class="ion-padding" style="--background: #ffffff; --padding-top: 74px;">
+
   <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 10px;">
     <div>
       <h1 style="font-weight: bold; margin: 0; font-size: 28px;">Calendário</h1>
       <p style="margin: 5px 0 0 0; color: #8c8c8c; font-size: 14px;">Visão geral dos teus prazos académicos</p>
     </div>
-    <ion-button color="secondary" style="--border-radius: 8px; font-weight: 500;">
+    <ion-button id="open-modal" color="secondary" style="--border-radius: 8px; font-weight: 500;">
       <ion-icon slot="start" name="add"></ion-icon>
       Adicionar Prazo
     </ion-button>
@@ -19,7 +20,7 @@
             <ion-icon name="alert-circle" color="danger" style="font-size: 20px;"></ion-icon>
           </div>
           <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">1</h1>
-          <small style="color: #8c8c8c;">Menos de 24 hours</small>
+          <small style="color: #8c8c8c;">Menos de 24 horas</small>
         </ion-card>
       </ion-col>
 
@@ -52,7 +53,6 @@
           <h3 style="font-weight: bold; margin-top: 0; margin-bottom: 20px; color: #333;">Calendário Semanal</h3>
           
           <div style="display: flex; justify-content: space-between; overflow-x: auto; gap: 10px;">
-            
             <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
               <span style="display: block; color: #8c8c8c; font-size: 14px;">Seg</span>
               <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">30</strong>
@@ -88,11 +88,87 @@
               <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">Apresen...</small>
               <span style="color: #8c8c8c; font-size: 10px;">18:00</span>
             </div>
-
           </div>
         </ion-card>
       </ion-col>
     </ion-row>
   </ion-grid>
+
+  <ion-modal trigger="open-modal" #modal>
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar style="--background: #ffffff; padding: 10px 10px 0 10px;">
+          <ion-title style="font-weight: bold; font-size: 22px; color: #000; padding: 0;">Adicionar Novo Prazo</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="modal.dismiss()" style="color: #8c8c8c;">
+              <ion-icon name="close" style="font-size: 24px;"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding" style="--background: #ffffff;">
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+          
+          <div>
+            <label style="font-weight: 500; display: block; margin-bottom: 5px;">Título <span style="color: red;">*</span></label>
+            <input type="text" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+          </div>
+
+          <div>
+            <label style="font-weight: 500; display: block; margin-bottom: 5px;">Descrição</label>
+            <textarea rows="4" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5; resize: none;"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+              <label style="font-weight: 500; display: block; margin-bottom: 5px;">Data de Entrega <span style="color: red;">*</span></label>
+              <input type="date" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+            </div>
+            <div style="flex: 1;">
+              <label style="font-weight: 500; display: block; margin-bottom: 5px;">Hora <span style="color: red;">*</span></label>
+              <input type="time" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+              <label style="font-weight: 500; display: block; margin-bottom: 5px;">Disciplina <span style="color: red;">*</span></label>
+              <select style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5; color: #8c8c8c;">
+                <option value="">Selecionar Disciplina</option>
+                <option value="ihm">IHM</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label style="font-weight: 500; display: block; margin-bottom: 5px;">Prioridade</label>
+              <select style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;">
+                <option value="baixa">Baixa</option>
+                <option value="media">Média</option>
+                <option value="alta">Alta</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="background: #f5f5f5; border: 1px solid #333; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+            <div>
+              <strong style="display: block; font-size: 16px;">Ativar a Notificação</strong>
+              <small style="color: #8c8c8c;">Receber alertas 3 dias antes e 1 dia antes</small>
+            </div>
+            <ion-toggle color="primary" checked="false"></ion-toggle>
+          </div>
+
+          <div style="display: flex; gap: 15px; margin-top: 25px;">
+            <button (click)="modal.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
+              Cancelar
+            </button>
+            <button (click)="modal.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: #5c6bc0; color: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
+              Guardar Prazo
+            </button>
+          </div>
+
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
 </ion-content>

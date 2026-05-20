@@ -26,3 +26,10 @@ ion-menu-button {
 #container a {
   text-decoration: none;
 }
+
+ion-modal {
+  --width: 550px;
+  --height: 680px;
+  --border-radius: 16px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+}
