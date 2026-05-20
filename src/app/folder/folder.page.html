@@ -1,21 +1,21 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>{{ folder }}</ion-title>
+    <ion-title>Sempre A Bulir</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">{{ folder }}</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <div id="container">
-    <strong class="capitalize">{{ folder }}</strong>
-    <p>Explore <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+<ion-content [fullscreen]="true" class="ion-padding">
+  
+  <div style="text-align: center; margin-top: 50px;">
+    <h1>Bem-vindo ao Sempre A Bulir!</h1>
+    <p>O vosso projeto de IHM começou oficialmente.</p>
+    
+    <ion-button color="secondary" style="margin-top: 20px;">
+      Começar
+    </ion-button>
   </div>
+
 </ion-content>
