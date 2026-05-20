@@ -2,10 +2,23 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 interface DiaSemana {
-  nome: string;      // Ex: 'Seg', 'Ter'
-  numero: number;    // Ex: 18, 19
-  isHoje: boolean;   // Se for o dia de hoje, fica true
+  nome: string;
+  numero: number;
+  isHoje: boolean;
   dataCompleta: Date;
+  temPrazo: boolean; // Nova propriedade para marcar se este dia ganhou um prazo
+  prazoTitulo?: string; // Título do prazo associado a este dia
+  prazoHora?: string;
+}
+
+interface NovoPrazo {
+  titulo: string;
+  descricao: string;
+  data: string;
+  hora: string;
+  disciplina: string;
+  prioridade: string;
+  notificacao: boolean;
 }
 
 @Component({
@@ -18,6 +31,20 @@ export class FolderPage implements OnInit {
   public folder!: string;
   public diasDaSemana: DiaSemana[] = [];
 
+  // Objeto que se liga diretamente aos campos do formulário HTML
+  public formularioprazo: NovoPrazo = {
+    titulo: '',
+    descricao: '',
+    data: '',
+    hora: '',
+    disciplina: '',
+    prioridade: 'baixa',
+    notificacao: false
+  };
+
+  // Lista global que vai guardar todos os prazos criados
+  public listaDePrazos: NovoPrazo[] = [];
+
   constructor(private activatedRoute: ActivatedRoute) { }
 
   ngOnInit() {
@@ -27,9 +54,8 @@ export class FolderPage implements OnInit {
 
   gerarSemanaAtual() {
     const hoje = new Date();
-    const diaSemanaAtual = hoje.getDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+    const diaSemanaAtual = hoje.getDay();
     
-    // Encontrar a Segunda-feira da semana atual
     const segundaFeira = new Date(hoje);
     const distanciaParaSegunda = diaSemanaAtual === 0 ? -6 : 1 - diaSemanaAtual;
     segundaFeira.setDate(hoje.getDate() + distanciaParaSegunda);
@@ -37,7 +63,6 @@ export class FolderPage implements OnInit {
     const nomesDias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
     this.diasDaSemana = [];
 
-    // Gerar apenas de Segunda a Sexta (5 dias) conforme o teu protótipo
     for (let i = 0; i < 5; i++) {
       const dataDia = new Date(segundaFeira);
       dataDia.setDate(segundaFeira.getDate() + i);
@@ -46,12 +71,48 @@ export class FolderPage implements OnInit {
         nome: nomesDias[i],
         numero: dataDia.getDate(),
         isHoje: this.isMesmoDia(hoje, dataDia),
-        dataCompleta: dataDia
+        dataCompleta: dataDia,
+        temPrazo: false // Por padrão, começa limpo
       });
     }
   }
 
-  // Função auxiliar para comparar se duas datas calham no mesmo dia do ano
+  // Função chamada pelo botão "Guardar Prazo"
+  guardarNovoPrazo(modal: any) {
+    if (!this.formularioprazo.titulo || !this.formularioprazo.data) {
+      alert('Por favor, preencha os campos obrigatórios (*)');
+      return;
+    }
+
+    // 1. Guarda na nossa lista geral (para uso futuro, estatísticas, etc.)
+    this.listaDePrazos.push({ ...this.formularioprazo });
+
+    // 2. Tenta encontrar se a data selecionada calha na semana exibida para pôr a bolinha vermelha
+    const dataSelecionada = new Date(this.formularioprazo.data);
+    
+    for (let dia of this.diasDaSemana) {
+      if (this.isMesmoDia(dataSelecionada, dia.dataCompleta)) {
+        dia.temPrazo = true;
+        dia.prazoTitulo = this.formularioprazo.titulo;
+        dia.prazoHora = this.formularioprazo.hora;
+      }
+    }
+
+    // 3. Limpa o formulário para a próxima utilização
+    this.formularioprazo = {
+      titulo: '',
+      descricao: '',
+      data: '',
+      hora: '',
+      disciplina: '',
+      prioridade: 'baixa',
+      notificacao: false
+    };
+
+    // 4. Fecha o modal de forma limpa
+    modal.dismiss();
+  }
+
   private isMesmoDia(data1: Date, data2: Date): boolean {
     return data1.getDate() === data2.getDate() &&
            data1.getMonth() === data2.getMonth() &&

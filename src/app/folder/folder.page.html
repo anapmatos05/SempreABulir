@@ -19,7 +19,7 @@
             <strong style="color: #333;">Prazos Urgentes</strong>
             <ion-icon name="alert-circle" color="danger" style="font-size: 20px;"></ion-icon>
           </div>
-          <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">1</h1>
+          <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">{{ listaDePrazos.length > 0 ? 1 : 0 }}</h1>
           <small style="color: #8c8c8c;">Menos de 24 horas</small>
         </ion-card>
       </ion-col>
@@ -30,7 +30,7 @@
             <strong style="color: #333;">Esta Semana</strong>
             <ion-icon name="calendar-outline" style="font-size: 20px; color: #555;"></ion-icon>
           </div>
-          <h1 style="font-size: 42px; font-weight: bold; color: #0052CC; margin: 15px 0 5px 0;">4</h1>
+          <h1 style="font-size: 42px; font-weight: bold; color: #0052CC; margin: 15px 0 5px 0;">{{ listaDePrazos.length }}</h1>
           <small style="color: #8c8c8c;">0 concluídas</small>
         </ion-card>
       </ion-col>
@@ -41,7 +41,7 @@
             <strong style="color: #333;">Em Progresso</strong>
             <ion-icon name="git-commit-outline" color="danger" style="font-size: 20px;"></ion-icon>
           </div>
-          <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">3</h1>
+          <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">{{ listaDePrazos.length }}</h1>
           <small style="color: #8c8c8c;">Tarefas ativas</small>
         </ion-card>
       </ion-col>
@@ -53,7 +53,6 @@
           <h3 style="font-weight: bold; margin-top: 0; margin-bottom: 20px; color: #333;">Calendário Semanal</h3>
           
           <div style="display: flex; justify-content: space-between; overflow-x: auto; gap: 10px;">
-            
             <div 
               *ngFor="let dia of diasDaSemana"
               [style.border]="dia.isHoje ? '2px solid #0052CC' : '1px solid #e0e0e0'"
@@ -62,15 +61,22 @@
               <span style="display: block; color: #8c8c8c; font-size: 14px;">{{ dia.nome }}</span>
               <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">{{ dia.numero }}</strong>
               
-              <ng-container *ngIf="dia.isHoje; else semPrazos">
-                <small style="color: #0052CC; font-weight: bold; display: block; font-size: 11px;">Hoje</small>
-              </ng-container>
+              <div *ngIf="dia.temPrazo; else semPrazos">
+                <div style="width: 8px; height: 8px; background: red; border-radius: 50%; margin: 0 auto 5px auto;"></div>
+                <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">
+                  {{ dia.prazoTitulo }}
+                </small>
+                <span style="color: #8c8c8c; font-size: 10px;">{{ dia.prazoHora }}</span>
+              </div>
+              
               <ng-template #semPrazos>
-                <small style="color: #b0b0b0; display: block; font-size: 11px;">Sem prazos</small>
+                <small style="color: #b0b0b0; display: block; font-size: 11px;">
+                  {{ dia.isHoje ? 'Hoje' : 'Sem prazos' }}
+                </small>
               </ng-template>
             </div>
-
           </div>
+
         </ion-card>
       </ion-col>
     </ion-row>
@@ -94,36 +100,36 @@
           
           <div>
             <label style="font-weight: 500; display: block; margin-bottom: 5px;">Título <span style="color: red;">*</span></label>
-            <input type="text" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+            <input type="text" [(ngModel)]="formularioprazo.titulo" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
           </div>
 
           <div>
             <label style="font-weight: 500; display: block; margin-bottom: 5px;">Descrição</label>
-            <textarea rows="4" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5; resize: none;"></textarea>
+            <textarea rows="4" [(ngModel)]="formularioprazo.descricao" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5; resize: none;"></textarea>
           </div>
 
           <div style="display: flex; gap: 15px;">
             <div style="flex: 1;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px;">Data de Entrega <span style="color: red;">*</span></label>
-              <input type="date" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+              <input type="date" [(ngModel)]="formularioprazo.data" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
             </div>
             <div style="flex: 1;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px;">Hora <span style="color: red;">*</span></label>
-              <input type="time" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+              <input type="time" [(ngModel)]="formularioprazo.hora" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
             </div>
           </div>
 
           <div style="display: flex; gap: 15px;">
             <div style="flex: 1;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px;">Disciplina <span style="color: red;">*</span></label>
-              <select style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5; color: #8c8c8c;">
+              <select [(ngModel)]="formularioprazo.disciplina" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5; color: #333;">
                 <option value="">Selecionar Disciplina</option>
                 <option value="ihm">IHM</option>
               </select>
             </div>
             <div style="flex: 1;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px;">Prioridade</label>
-              <select style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;">
+              <select [(ngModel)]="formularioprazo.prioridade" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;">
                 <option value="baixa">Baixa</option>
                 <option value="media">Média</option>
                 <option value="alta">Alta</option>
@@ -136,14 +142,14 @@
               <strong style="display: block; font-size: 16px;">Ativar a Notificação</strong>
               <small style="color: #8c8c8c;">Receber alertas 3 dias antes e 1 dia antes</small>
             </div>
-            <ion-toggle color="primary" checked="false"></ion-toggle>
+            <ion-toggle color="primary" [(ngModel)]="formularioprazo.notificacao"></ion-toggle>
           </div>
 
           <div style="display: flex; gap: 15px; margin-top: 25px;">
             <button (click)="modal.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
               Cancelar
             </button>
-            <button (click)="modal.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: #5c6bc0; color: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
+            <button (click)="guardarNovoPrazo(modal)" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: #5c6bc0; color: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
               Guardar Prazo
             </button>
           </div>
