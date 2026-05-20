@@ -1,21 +1,98 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-    <ion-title>Sempre A Bulir</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true" class="ion-padding">
-  
-  <div style="text-align: center; margin-top: 50px;">
-    <h1>Bem-vindo ao Sempre A Bulir!</h1>
-    <p>O vosso projeto de IHM começou oficialmente.</p>
-    
-    <ion-button color="secondary" style="margin-top: 20px;">
-      Começar
+<ion-content [fullscreen]="true" class="ion-padding" style="--background: #fcfcfc; --padding-top: 74px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 10px;">
+    <div>
+      <h1 style="font-weight: bold; margin: 0; font-size: 28px;">Calendário</h1>
+      <p style="margin: 5px 0 0 0; color: #8c8c8c; font-size: 14px;">Visão geral dos teus prazos académicos</p>
+    </div>
+    <ion-button color="secondary" style="--border-radius: 8px; font-weight: 500;">
+      <ion-icon slot="start" name="add"></ion-icon>
+      Adicionar Prazo
     </ion-button>
   </div>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="4">
+        <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #333;">Prazos Urgentes</strong>
+            <ion-icon name="alert-circle" color="danger" style="font-size: 20px;"></ion-icon>
+          </div>
+          <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">1</h1>
+          <small style="color: #8c8c8c;">Menos de 24 hours</small>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="4">
+        <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #333;">Esta Semana</strong>
+            <ion-icon name="calendar-outline" style="font-size: 20px; color: #555;"></ion-icon>
+          </div>
+          <h1 style="font-size: 42px; font-weight: bold; color: #0052CC; margin: 15px 0 5px 0;">4</h1>
+          <small style="color: #8c8c8c;">0 concluídas</small>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="4">
+        <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #333;">Em Progresso</strong>
+            <ion-icon name="git-commit-outline" color="danger" style="font-size: 20px;"></ion-icon>
+          </div>
+          <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">3</h1>
+          <small style="color: #8c8c8c;">Tarefas ativas</small>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+
+    <ion-row style="margin-top: 20px;">
+      <ion-col size="12">
+        <ion-card style="margin: 5px; padding: 20px; border-radius: 16px; background: #f5f5f5; box-shadow: none;">
+          <h3 style="font-weight: bold; margin-top: 0; margin-bottom: 20px; color: #333;">Calendário Semanal</h3>
+          
+          <div style="display: flex; justify-content: space-between; overflow-x: auto; gap: 10px;">
+            
+            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
+              <span style="display: block; color: #8c8c8c; font-size: 14px;">Seg</span>
+              <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">30</strong>
+              <small style="color: #b0b0b0; display: block; font-size: 11px;">Sem prazos</small>
+            </div>
+
+            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 2px solid #0052CC;">
+              <span style="display: block; color: #8c8c8c; font-size: 14px;">Ter</span>
+              <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">31</strong>
+              <small style="color: #b0b0b0; display: block; font-size: 11px;">Sem prazos</small>
+            </div>
+
+            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
+              <span style="display: block; color: #8c8c8c; font-size: 14px;">Qua</span>
+              <strong style="display: block; font-size: 18px; margin: 5px 0 5px 0;">1</strong>
+              <div style="width: 8px; height: 8px; background: red; border-radius: 50%; margin: 0 auto 5px auto;"></div>
+              <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">Relatório...</small>
+              <span style="color: #8c8c8c; font-size: 10px;">23:00</span>
+            </div>
+
+            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
+              <span style="display: block; color: #8c8c8c; font-size: 14px;">Qui</span>
+              <strong style="display: block; font-size: 18px; margin: 5px 0 5px 0;">2</strong>
+              <div style="width: 8px; height: 8px; background: red; border-radius: 50%; margin: 0 auto 5px auto;"></div>
+              <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">Trabalho...</small>
+              <span style="color: #8c8c8c; font-size: 10px;">18:00</span>
+            </div>
+
+            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
+              <span style="display: block; color: #8c8c8c; font-size: 14px;">Sex</span>
+              <strong style="display: block; font-size: 18px; margin: 5px 0 5px 0;">3</strong>
+              <div style="width: 8px; height: 8px; background: #0052CC; border-radius: 50%; margin: 0 auto 5px auto;"></div>
+              <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">Apresen...</small>
+              <span style="color: #8c8c8c; font-size: 10px;">18:00</span>
+            </div>
+
+          </div>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 
 </ion-content>

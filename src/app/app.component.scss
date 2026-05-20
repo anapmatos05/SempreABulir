@@ -117,3 +117,14 @@ ion-note {
 ion-item.selected {
   --color: var(--ion-color-primary);
 }
+
+// Estilo para o item que está selecionado no menu
+.selected {
+  --background: #e0e0e0 !important;
+  font-weight: bold;
+}
+
+// Remove margens padrão da lista interna
+ion-list {
+  margin: 0;
+}

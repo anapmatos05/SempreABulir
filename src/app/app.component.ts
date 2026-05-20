@@ -9,15 +9,12 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 })
 export class AppComponent {
   public appPages = [
-    { title: 'Inbox', url: '/folder/inbox', icon: 'mail' },
-    { title: 'Outbox', url: '/folder/outbox', icon: 'paper-plane' },
-    { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
-    { title: 'Archived', url: '/folder/archived', icon: 'archive' },
-    { title: 'Trash', url: '/folder/trash', icon: 'trash' },
-    { title: 'Spam', url: '/folder/spam', icon: 'warning' },
+    { title: 'Calendário', url: '/folder/Calendario', icon: 'calendar' },
+    { title: 'Tarefas', url: '/folder/Tarefas', icon: 'checkbox' },
+    { title: 'Grupos', url: '/folder/Grupos', icon: 'people' },
   ];
-  public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
-
+  public labels = []; // Mantemos vazio para não criar distrações cá em baixo
+  
   constructor() {
     // Ativa o bloqueio assim que a app inicia
     this.lockOrientation();
