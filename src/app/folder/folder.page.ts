@@ -6,8 +6,8 @@ interface DiaSemana {
   numero: number;
   isHoje: boolean;
   dataCompleta: Date;
-  temPrazo: boolean; // Nova propriedade para marcar se este dia ganhou um prazo
-  prazoTitulo?: string; // Título do prazo associado a este dia
+  temPrazo: boolean;
+  prazoTitulo?: string;
   prazoHora?: string;
 }
 
@@ -52,6 +52,23 @@ export class FolderPage implements OnInit {
     this.gerarSemanaAtual();
   }
 
+  // Verifica se um prazo já passou da data e hora atuais
+  prazoJaExpirou(dataString: string, horaString: string): boolean {
+    if (!dataString) return false;
+
+    // Se o utilizador não definir hora, assume o final do dia (23:59)
+    const horaPrazo = horaString || '23:59';
+    const dataPrazo = new Date(`${dataString}T${horaPrazo}`);
+    const agora = new Date();
+
+    return dataPrazo < agora;
+  }
+
+  // Retorna a quantidade de prazos ativos (para atualizar os contadores do HTML)
+  get prazosAtivosCount(): number {
+    return this.listaDePrazos.filter(p => !this.prazoJaExpirou(p.data, p.hora)).length;
+  }
+
   gerarSemanaAtual() {
     const hoje = new Date();
     const diaSemanaAtual = hoje.getDay();
@@ -67,12 +84,20 @@ export class FolderPage implements OnInit {
       const dataDia = new Date(segundaFeira);
       dataDia.setDate(segundaFeira.getDate() + i);
 
+      // Procura se existe algum prazo ativo para este dia da semana
+      const prazoDoDia = this.listaDePrazos.find(prazo => {
+        const dataPrazo = new Date(prazo.data);
+        return this.isMesmoDia(dataPrazo, dataDia) && !this.prazoJaExpirou(prazo.data, prazo.hora);
+      });
+
       this.diasDaSemana.push({
         nome: nomesDias[i],
         numero: dataDia.getDate(),
         isHoje: this.isMesmoDia(hoje, dataDia),
         dataCompleta: dataDia,
-        temPrazo: false // Por padrão, começa limpo
+        temPrazo: !!prazoDoDia,
+        prazoTitulo: prazoDoDia ? prazoDoDia.titulo : undefined,
+        prazoHora: prazoDoDia ? prazoDoDia.hora : undefined
       });
     }
   }
@@ -84,19 +109,17 @@ export class FolderPage implements OnInit {
       return;
     }
 
-    // 1. Guarda na nossa lista geral (para uso futuro, estatísticas, etc.)
+    // Impede a criação de prazos com datas passadas
+    if (this.prazoJaExpirou(this.formularioprazo.data, this.formularioprazo.hora)) {
+      alert('Não podes adicionar um prazo com uma data ou hora que já passou!');
+      return;
+    }
+
+    // 1. Guarda na nossa lista geral
     this.listaDePrazos.push({ ...this.formularioprazo });
 
-    // 2. Tenta encontrar se a data selecionada calha na semana exibida para pôr a bolinha vermelha
-    const dataSelecionada = new Date(this.formularioprazo.data);
-    
-    for (let dia of this.diasDaSemana) {
-      if (this.isMesmoDia(dataSelecionada, dia.dataCompleta)) {
-        dia.temPrazo = true;
-        dia.prazoTitulo = this.formularioprazo.titulo;
-        dia.prazoHora = this.formularioprazo.hora;
-      }
-    }
+    // 2. Atualiza o calendário e recalcula os prazos visíveis
+    this.gerarSemanaAtual();
 
     // 3. Limpa o formulário para a próxima utilização
     this.formularioprazo = {
