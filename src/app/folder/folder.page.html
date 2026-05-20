@@ -120,12 +120,41 @@
           </div>
 
           <div style="display: flex; gap: 15px;">
-            <div style="flex: 1;">
+           <div class="container-disciplina" style="flex: 1;">
+              <style>
+                .container-disciplina input::-webkit-calendar-picker-indicator {
+                  display: none !important;
+                  -webkit-appearance: none !important;
+                }
+              </style>
+
               <label style="font-weight: 500; display: block; margin-bottom: 5px;">Disciplina <span style="color: red;">*</span></label>
-              <select [(ngModel)]="formularioprazo.disciplina" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5; color: #333;">
-                <option value="">Selecionar Disciplina</option>
-                <option value="ihm">IHM</option>
-              </select>
+              
+              <input 
+                type="text" 
+                [(ngModel)]="formularioprazo.disciplina" 
+                list="disciplinas-sugestoes" 
+                placeholder="Escreve ou seleciona..."
+                style="width: 100%; padding: 12px 35px 12px 12px; border-radius: 10px; border: 1px solid #333; background-color: #f5f5f5; color: #333;
+                       background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E');
+                       background-repeat: no-repeat;
+                       background-position: right 14px center;
+                       background-size: 14px auto;
+                       -webkit-appearance: none;
+                       -moz-appearance: none;
+                       appearance: none;" 
+              />
+              
+              <datalist id="disciplinas-sugestoes">
+                <option value="IHM (Interação Homem-Máquina)"></option>
+                <option value="Programação Móvel"></option>
+                <option value="Bases de Dados"></option>
+                <option value="Engenharia de Software"></option>
+                <option value="Sistemas Operativos"></option>
+                <option value="Redes de Computadores"></option>
+                <option value="Inteligência Artificial"></option>
+                <option value="Matemática Computacional"></option>
+              </datalist>
             </div>
             <div style="flex: 1;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px;">Prioridade</label>
