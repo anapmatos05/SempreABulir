@@ -53,41 +53,23 @@
           <h3 style="font-weight: bold; margin-top: 0; margin-bottom: 20px; color: #333;">Calendário Semanal</h3>
           
           <div style="display: flex; justify-content: space-between; overflow-x: auto; gap: 10px;">
-            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
-              <span style="display: block; color: #8c8c8c; font-size: 14px;">Seg</span>
-              <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">30</strong>
-              <small style="color: #b0b0b0; display: block; font-size: 11px;">Sem prazos</small>
+            
+            <div 
+              *ngFor="let dia of diasDaSemana"
+              [style.border]="dia.isHoje ? '2px solid #0052CC' : '1px solid #e0e0e0'"
+              style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center;"
+            >
+              <span style="display: block; color: #8c8c8c; font-size: 14px;">{{ dia.nome }}</span>
+              <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">{{ dia.numero }}</strong>
+              
+              <ng-container *ngIf="dia.isHoje; else semPrazos">
+                <small style="color: #0052CC; font-weight: bold; display: block; font-size: 11px;">Hoje</small>
+              </ng-container>
+              <ng-template #semPrazos>
+                <small style="color: #b0b0b0; display: block; font-size: 11px;">Sem prazos</small>
+              </ng-template>
             </div>
 
-            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 2px solid #0052CC;">
-              <span style="display: block; color: #8c8c8c; font-size: 14px;">Ter</span>
-              <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">31</strong>
-              <small style="color: #b0b0b0; display: block; font-size: 11px;">Sem prazos</small>
-            </div>
-
-            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
-              <span style="display: block; color: #8c8c8c; font-size: 14px;">Qua</span>
-              <strong style="display: block; font-size: 18px; margin: 5px 0 5px 0;">1</strong>
-              <div style="width: 8px; height: 8px; background: red; border-radius: 50%; margin: 0 auto 5px auto;"></div>
-              <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">Relatório...</small>
-              <span style="color: #8c8c8c; font-size: 10px;">23:00</span>
-            </div>
-
-            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
-              <span style="display: block; color: #8c8c8c; font-size: 14px;">Qui</span>
-              <strong style="display: block; font-size: 18px; margin: 5px 0 5px 0;">2</strong>
-              <div style="width: 8px; height: 8px; background: red; border-radius: 50%; margin: 0 auto 5px auto;"></div>
-              <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">Trabalho...</small>
-              <span style="color: #8c8c8c; font-size: 10px;">18:00</span>
-            </div>
-
-            <div style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #e0e0e0;">
-              <span style="display: block; color: #8c8c8c; font-size: 14px;">Sex</span>
-              <strong style="display: block; font-size: 18px; margin: 5px 0 5px 0;">3</strong>
-              <div style="width: 8px; height: 8px; background: #0052CC; border-radius: 50%; margin: 0 auto 5px auto;"></div>
-              <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">Apresen...</small>
-              <span style="color: #8c8c8c; font-size: 10px;">18:00</span>
-            </div>
           </div>
         </ion-card>
       </ion-col>
