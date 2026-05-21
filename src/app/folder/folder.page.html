@@ -6,7 +6,7 @@
         <h1 style="font-weight: bold; margin: 0; font-size: 28px;">Calendário</h1>
         <p style="margin: 5px 0 0 0; color: #8c8c8c; font-size: 14px;">Visão geral dos teus prazos académicos</p>
       </div>
-      <ion-button id="open-modal" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
+      <ion-button (click)="modal.present()" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
         <ion-icon slot="start" name="add"></ion-icon>
         Adicionar Prazo
       </ion-button>
@@ -89,7 +89,7 @@
         <h1 style="font-weight: bold; margin: 0; font-size: 32px; color: #000;">Tarefas</h1>
         <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Gestão completa de prazos e entregas</p>
       </div>
-      <ion-button id="open-modal" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
+      <ion-button (click)="modal.present()" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
         <ion-icon slot="start" name="add"></ion-icon>
         Adicionar Prazo
       </ion-button>
@@ -199,7 +199,7 @@
     </div>
   </div>
 
-  <ion-modal trigger="open-modal" #modal>
+  <ion-modal #modal>
     <ng-template>
       <ion-header class="ion-no-border">
         <ion-toolbar style="--background: #ffffff; padding: 10px 10px 0 10px;">
