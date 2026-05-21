@@ -19,7 +19,7 @@ interface NovoPrazo {
   disciplina: string;
   prioridade: string;
   notificacao: boolean;
-  estado: 'Pendente' | 'Em Progresso' | 'Concluída'; // Novo campo de estado
+  estado: 'Pendente' | 'Em Progresso' | 'Concluída';
 }
 
 @Component({
@@ -29,7 +29,7 @@ interface NovoPrazo {
   standalone: false
 })
 export class FolderPage implements OnInit {
-  public folder!: string; // Vai ser 'calendario', 'tarefas', etc.
+  public folder!: string;
   public diasDaSemana: DiaSemana[] = [];
 
   // Variáveis para os filtros do ecrã de Tarefas
@@ -44,19 +44,19 @@ export class FolderPage implements OnInit {
     data: '',
     hora: '',
     disciplina: '',
-    prioridade: 'baixa',
+    prioridade: 'media',
     notificacao: false,
     estado: 'Pendente'
   };
 
-  // Lista global de prazos (Adicionei dados fictícios idênticos ao teu print para testes)
+  // Lista global de prazos com os nomes corrigidos para as tuas disciplinas oficiais
   public listaDePrazos: NovoPrazo[] = [
     {
       titulo: 'Relatório SO - Gestão de Memória',
       descricao: 'Escrever relatório sobre algoritmos de gestão de memória em sistemas operativos',
-      data: '2026-05-21', // Adaptado para testes futuros próximos
+      data: '2026-05-21',
       hora: '23:00',
-      disciplina: 'SO',
+      disciplina: 'Sistemas Operativos',
       prioridade: 'alta',
       notificacao: false,
       estado: 'Em Progresso'
@@ -66,7 +66,7 @@ export class FolderPage implements OnInit {
       descricao: 'Análise detalhada do protocolo TCP/IP e implementação de exemplo',
       data: '2026-05-22',
       hora: '18:00',
-      disciplina: 'REDSIS',
+      disciplina: 'Redes de Computadores',
       prioridade: 'alta',
       notificacao: false,
       estado: 'Pendente'
@@ -76,7 +76,7 @@ export class FolderPage implements OnInit {
       descricao: 'Apresentação do projeto de análise de tarefas e modelo conceptual',
       data: '2026-05-23',
       hora: '18:00',
-      disciplina: 'IHM',
+      disciplina: 'IHM (Interação Homem-Máquina)',
       prioridade: 'alta',
       notificacao: false,
       estado: 'Em Progresso'
@@ -85,11 +85,10 @@ export class FolderPage implements OnInit {
 
   constructor(private activatedRoute: ActivatedRoute) { }
 
- ngOnInit() {
-    // Subscreve às mudanças de rota e converte o ID sempre para minúsculas
+  ngOnInit() {
     this.activatedRoute.paramMap.subscribe(params => {
       const idRota = params.get('id') || 'calendario';
-      this.folder = idRota.toLowerCase(); // Garante que 'Tarefas' passa a 'tarefas'
+      this.folder = idRota.toLowerCase();
       
       if (this.folder === 'calendario') {
         this.gerarSemanaAtual();
@@ -109,23 +108,27 @@ export class FolderPage implements OnInit {
     return this.listaDePrazos.filter(p => !this.prazoJaExpirou(p.data, p.hora) && p.estado !== 'Concluída').length;
   }
 
-  // Lista de disciplinas únicas para preencher o select de filtros dinamicamente
+  // Lista estática com as tuas 8 disciplinas do semestre para o filtro do ecrã
   get listaDisciplinasUnicas(): string[] {
-    const disciplinas = this.listaDePrazos.map(p => p.disciplina).filter(d => !!d);
-    return Array.from(new Set(disciplinas));
+    return [
+      'IHM (Interação Homem-Máquina)',
+      'Programação Móvel',
+      'Bases de Dados',
+      'Engenharia de Software',
+      'Sistemas Operativos',
+      'Redes de Computadores',
+      'Inteligência Artificial',
+      'Matemática Computacional'
+    ];
   }
 
-  // Lógica de filtragem avançada para a lista de tarefas do ecrã
   get tarefasFiltradas(): NovoPrazo[] {
     return this.listaDePrazos.filter(tarefa => {
-      // 1. Filtro por Termo de Pesquisa
       const correspondePesquisa = tarefa.titulo.toLowerCase().includes(this.termoPesquisa.toLowerCase()) || 
                                   tarefa.descricao.toLowerCase().includes(this.termoPesquisa.toLowerCase());
       
-      // 2. Filtro por Disciplina Dropdown
       const correspondeDisciplina = this.disciplinaFiltro === 'todas' || tarefa.disciplina === this.disciplinaFiltro;
       
-      // 3. Filtro pelas Abas (Todas, Pendentes, Em Progresso, Concluídas)
       let correspondeAba = true;
       if (this.abaAtiva === 'Pendentes') correspondeAba = tarefa.estado === 'Pendente';
       else if (this.abaAtiva === 'Em Progresso') correspondeAba = tarefa.estado === 'Em Progresso';
@@ -135,13 +138,11 @@ export class FolderPage implements OnInit {
     });
   }
 
-  // Retorna a contagem exata para as labels das abas ex: "Pendentes (3)"
   contarPorEstado(estado: string): number {
     if (estado === 'Todas') return this.listaDePrazos.length;
     return this.listaDePrazos.filter(t => t.estado === estado).length;
   }
 
-  // Calcula quantos dias faltam para a entrega de forma amigável
   obterDiasRestantesTexto(dataString: string): string {
     const hoje = new Date();
     hoje.setHours(0,0,0,0);
@@ -190,7 +191,7 @@ export class FolderPage implements OnInit {
   }
 
   guardarNovoPrazo(modal: any) {
-    if (!this.formularioprazo.titulo || !this.formularioprazo.data) {
+    if (!this.formularioprazo.titulo || !this.formularioprazo.data || !this.formularioprazo.disciplina) {
       alert('Por favor, preencha os campos obrigatórios (*)');
       return;
     }
@@ -207,7 +208,7 @@ export class FolderPage implements OnInit {
       data: '',
       hora: '',
       disciplina: '',
-      prioridade: 'baixa',
+      prioridade: 'media',
       notificacao: false,
       estado: 'Pendente'
     };
