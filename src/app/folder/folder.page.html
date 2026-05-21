@@ -1,86 +1,203 @@
 <ion-content [fullscreen]="true" class="ion-padding" style="--background: #ffffff; --padding-top: 74px;">
 
-  <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 10px;">
-    <div>
-      <h1 style="font-weight: bold; margin: 0; font-size: 28px;">Calendário</h1>
-      <p style="margin: 5px 0 0 0; color: #8c8c8c; font-size: 14px;">Visão geral dos teus prazos académicos</p>
+  <div *ngIf="folder === 'calendario'">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 10px;">
+      <div>
+        <h1 style="font-weight: bold; margin: 0; font-size: 28px;">Calendário</h1>
+        <p style="margin: 5px 0 0 0; color: #8c8c8c; font-size: 14px;">Visão geral dos teus prazos académicos</p>
+      </div>
+      <ion-button id="open-modal" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
+        <ion-icon slot="start" name="add"></ion-icon>
+        Adicionar Prazo
+      </ion-button>
     </div>
-    <ion-button id="open-modal" color="secondary" style="--border-radius: 8px; font-weight: 500;">
-      <ion-icon slot="start" name="add"></ion-icon>
-      Adicionar Prazo
-    </ion-button>
+
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="4">
+          <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong style="color: #333;">Prazos Urgentes</strong>
+              <ion-icon name="alert-circle" color="danger" style="font-size: 20px;"></ion-icon>
+            </div>
+            <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">{{ prazosAtivosCount > 0 ? 1 : 0 }}</h1>
+            <small style="color: #8c8c8c;">Menos de 24 horas</small>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="12" size-md="4">
+          <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong style="color: #333;">Esta Semana</strong>
+              <ion-icon name="calendar-outline" style="font-size: 20px; color: #555;"></ion-icon>
+            </div>
+            <h1 style="font-size: 42px; font-weight: bold; color: #0052CC; margin: 15px 0 5px 0;">{{ prazosAtivosCount }}</h1>
+            <small style="color: #8c8c8c;">0 concluídas</small>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="12" size-md="4">
+          <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong style="color: #333;">Em Progresso</strong>
+              <ion-icon name="git-commit-outline" color="danger" style="font-size: 20px;"></ion-icon>
+            </div>
+            <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">{{ prazosAtivosCount }}</h1>
+            <small style="color: #8c8c8c;">Tarefas ativas</small>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+
+      <ion-row style="margin-top: 20px;">
+        <ion-col size="12">
+          <ion-card style="margin: 5px; padding: 20px; border-radius: 16px; background: #f5f5f5; box-shadow: none;">
+            <h3 style="font-weight: bold; margin-top: 0; margin-bottom: 20px; color: #333;">Calendário Semanal</h3>
+            <div style="display: flex; justify-content: space-between; overflow-x: auto; gap: 10px;">
+              <div 
+                *ngFor="let dia of diasDaSemana"
+                [style.border]="dia.isHoje ? '2px solid #0052CC' : '1px solid #e0e0e0'"
+                style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center;"
+              >
+                <span style="display: block; color: #8c8c8c; font-size: 14px;">{{ dia.nome }}</span>
+                <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">{{ dia.numero }}</strong>
+                
+                <div *ngIf="dia.temPrazo; else semPrazos">
+                  <div style="width: 8px; height: 8px; background: red; border-radius: 50%; margin: 0 auto 5px auto;"></div>
+                  <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">
+                    {{ dia.prazoTitulo }}
+                  </small>
+                  <span style="color: #8c8c8c; font-size: 10px;">{{ dia.prazoHora }}</span>
+                </div>
+                
+                <ng-template #semPrazos>
+                  <small style="color: #b0b0b0; display: block; font-size: 11px;">
+                    {{ dia.isHoje ? 'Hoje' : 'Sem prazos' }}
+                  </small>
+                </ng-template>
+              </div>
+            </div>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </div>
 
-  <ion-grid>
-    <ion-row>
-      <ion-col size="12" size-md="4">
-        <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong style="color: #333;">Prazos Urgentes</strong>
-            <ion-icon name="alert-circle" color="danger" style="font-size: 20px;"></ion-icon>
-          </div>
-          <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">{{ prazosAtivosCount > 0 ? 1 : 0 }}</h1>
-          <small style="color: #8c8c8c;">Menos de 24 horas</small>
-        </ion-card>
-      </ion-col>
+  <div *ngIf="folder === 'tarefas'" style="padding: 10px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+      <div>
+        <h1 style="font-weight: bold; margin: 0; font-size: 32px; color: #000;">Tarefas</h1>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Gestão completa de prazos e entregas</p>
+      </div>
+      <ion-button id="open-modal" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
+        <ion-icon slot="start" name="add"></ion-icon>
+        Adicionar Prazo
+      </ion-button>
+    </div>
 
-      <ion-col size="12" size-md="4">
-        <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong style="color: #333;">Esta Semana</strong>
-            <ion-icon name="calendar-outline" style="font-size: 20px; color: #555;"></ion-icon>
-          </div>
-          <h1 style="font-size: 42px; font-weight: bold; color: #0052CC; margin: 15px 0 5px 0;">{{ prazosAtivosCount }}</h1>
-          <small style="color: #8c8c8c;">0 concluídas</small>
-        </ion-card>
-      </ion-col>
+    <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: center;">
+      <div style="flex: 1; background: #f0f2f5; border-radius: 10px; display: flex; align-items: center; padding: 2px 12px;">
+        <ion-icon name="search-outline" style="color: #666; font-size: 20px; margin-right: 8px;"></ion-icon>
+        <input 
+          type="text" 
+          [(ngModel)]="termoPesquisa" 
+          placeholder="Pesquisar tarefas..." 
+          style="width: 100%; border: none; background: transparent; padding: 12px 0; color: #333; outline: none; font-size: 15px;" 
+        />
+      </div>
 
-      <ion-col size="12" size-md="4">
-        <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong style="color: #333;">Em Progresso</strong>
-            <ion-icon name="git-commit-outline" color="danger" style="font-size: 20px;"></ion-icon>
-          </div>
-          <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">{{ prazosAtivosCount }}</h1>
-          <small style="color: #8c8c8c;">Tarefas ativas</small>
-        </ion-card>
-      </ion-col>
-    </ion-row>
+      <div style="background: #f0f2f5; border-radius: 10px; padding: 0 15px; display: flex; align-items: center; min-width: 160px; height: 48px;">
+        <select [(ngModel)]="disciplinaFiltro" style="width: 100%; border: none; background: transparent; color: #000; font-weight: 600; outline: none; font-size: 14px;">
+          <option value="todas">Todas as disciplinas</option>
+          <option *ngFor="let disc of listaDisciplinasUnicas" [value]="disc">{{ disc }}</option>
+        </select>
+      </div>
+    </div>
 
-    <ion-row style="margin-top: 20px;">
-      <ion-col size="12">
-        <ion-card style="margin: 5px; padding: 20px; border-radius: 16px; background: #f5f5f5; box-shadow: none;">
-          <h3 style="font-weight: bold; margin-top: 0; margin-bottom: 20px; color: #333;">Calendário Semanal</h3>
-          
-          <div style="display: flex; justify-content: space-between; overflow-x: auto; gap: 10px;">
-            <div 
-              *ngFor="let dia of diasDaSemana"
-              [style.border]="dia.isHoje ? '2px solid #0052CC' : '1px solid #e0e0e0'"
-              style="flex: 1; min-width: 80px; background: #fff; border-radius: 12px; padding: 15px 5px; text-align: center;"
-            >
-              <span style="display: block; color: #8c8c8c; font-size: 14px;">{{ dia.nome }}</span>
-              <strong style="display: block; font-size: 18px; margin: 5px 0 15px 0;">{{ dia.numero }}</strong>
-              
-              <div *ngIf="dia.temPrazo; else semPrazos">
-                <div style="width: 8px; height: 8px; background: red; border-radius: 50%; margin: 0 auto 5px auto;"></div>
-                <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px;">
-                  {{ dia.prazoTitulo }}
-                </small>
-                <span style="color: #8c8c8c; font-size: 10px;">{{ dia.prazoHora }}</span>
+    <div style="display: flex; gap: 20px; border-bottom: 1px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto;">
+      <span 
+        *ngFor="let aba of ['Todas', 'Pendentes', 'Em Progresso', 'Concluídas']"
+        (click)="abaAtiva = aba"
+        [style.color]="abaAtiva === aba ? '#000000' : '#666666'"
+        [style.font-weight]="abaAtiva === aba ? 'bold' : 'normal'"
+        [style.border-bottom]="abaAtiva === aba ? '3px solid #5c6bc0' : 'none'"
+        style="padding-bottom: 10px; cursor: pointer; white-space: nowrap; font-size: 15px; transition: all 0.2s;"
+      >
+        {{ aba }} ({{ aba === 'Todas' ? (contarPorEstado('Pendente') + contarPorEstado('Em Progresso') + contarPorEstado('Concluída')) : contarPorEstado(aba === 'Pendentes' ? 'Pendente' : aba) }})
+      </span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+      
+      <div *ngFor="let tarefa of tarefasFiltradas" style="background: #f5f5f5; border-radius: 14px; padding: 18px; display: flex; align-items: center; justify-content: space-between; position: relative;">
+        
+        <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1;">
+          <div 
+            [style.background]="tarefa.estado === 'Concluída' ? '#4caf50' : (tarefa.estado === 'Em Progresso' ? '#ff3d00' : '#ffb300')" 
+            style="width: 14px; height: 14px; border-radius: 50%; margin-top: 6px; flex-shrink: 0;"
+          ></div>
+
+          <div style="flex: 1;">
+            <h3 [style.text-decoration]="tarefa.estado === 'Concluída' ? 'line-through' : 'none'" style="margin: 0 0 4px 0; font-weight: bold; font-size: 18px; color: #000;">
+              {{ tarefa.titulo }}
+            </h3>
+            <p style="margin: 0 0 15px 0; color: #666; font-size: 13px; line-height: 1.4;">
+              {{ tarefa.descricao }}
+            </p>
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+              <span style="border: 1.5px solid #ff3d00; color: #ff3d00; background: #fff; font-weight: bold; padding: 4px 14px; border-radius: 6px; font-size: 12px; min-width: 50px; text-align: center;">
+                {{ tarefa.disciplina || 'Geral' }}
+              </span>
+
+              <div style="display: flex; align-items: center; color: #666; font-size: 13px; margin-left: 5px;">
+                <ion-icon name="time-outline" style="margin-right: 4px; font-size: 16px;"></ion-icon>
+                <span>{{ tarefa.data | date:'dd/MM/yyyy' }} às {{ tarefa.hora || '23:59' }}</span>
               </div>
-              
-              <ng-template #semPrazos>
-                <small style="color: #b0b0b0; display: block; font-size: 11px;">
-                  {{ dia.isHoje ? 'Hoje' : 'Sem prazos' }}
-                </small>
-              </ng-template>
+
+              <span 
+                [style.background]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? '#9e9e9e' : '#ff1744'"
+                style="color: #fff; font-weight: bold; padding: 4px 10px; border-radius: 6px; font-size: 12px;"
+              >
+                {{ obterDiasRestantesTexto(tarefa.data) }}
+              </span>
+
+              <span style="color: #ff3d00; font-size: 13px; font-weight: 500; display: flex; align-items: center;">
+                <span style="margin-right: 4px;">➤</span> {{ tarefa.prioridade | titlecase }} Prioridade
+              </span>
             </div>
           </div>
+        </div>
 
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <ion-button fill="clear" style="--color: #333;" [id]="'trigger-' + tarefa.titulo.replace(' ', '-')">
+            <span style="background: #e0e0e0; color: #333; font-size: 12px; font-weight: bold; padding: 6px 12px; border-radius: 6px; text-transform: none;">
+              {{ tarefa.estado }}
+            </span>
+          </ion-button>
+          
+          <ion-popover [trigger]="'trigger-' + tarefa.titulo.replace(' ', '-')" dismiss-on-select="true">
+            <ng-template>
+              <ion-content>
+                <ion-list lines="none">
+                  <ion-item button (click)="alterarEstadoTarefa(tarefa, 'Pendente')">Definir como Pendente</ion-item>
+                  <ion-item button (click)="alterarEstadoTarefa(tarefa, 'Em Progresso')">Definir como Em Progresso</ion-item>
+                  <ion-item button (click)="alterarEstadoTarefa(tarefa, 'Concluída')">Marcar como Concluída</ion-item>
+                </ion-list>
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </div>
+
+      </div>
+
+      <div *ngIf="tarefasFiltradas.length === 0" style="text-align: center; padding: 40px; color: #8c8c8c;">
+        <ion-icon name="folder-open-outline" style="font-size: 48px; margin-bottom: 10px;"></ion-icon>
+        <p>Nenhuma tarefa encontrada para esta seleção.</p>
+      </div>
+
+    </div>
+  </div>
 
   <ion-modal trigger="open-modal" #modal>
     <ng-template>
@@ -99,67 +216,45 @@
         <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
           
           <div>
-            <label style="font-weight: 500; display: block; margin-bottom: 5px;">Título <span style="color: red;">*</span></label>
-            <input type="text" [(ngModel)]="formularioprazo.titulo" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+            <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Título <span style="color: red;">*</span></label>
+            <input type="text" [(ngModel)]="formularioprazo.titulo" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000;" />
           </div>
 
           <div>
-            <label style="font-weight: 500; display: block; margin-bottom: 5px;">Descrição</label>
-            <textarea rows="4" [(ngModel)]="formularioprazo.descricao" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5; resize: none;"></textarea>
+            <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Descrição</label>
+            <textarea rows="4" [(ngModel)]="formularioprazo.descricao" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; resize: none;"></textarea>
           </div>
 
           <div style="display: flex; gap: 15px;">
             <div style="flex: 1;">
-              <label style="font-weight: 500; display: block; margin-bottom: 5px;">Data de Entrega <span style="color: red;">*</span></label>
-              <input type="date" [(ngModel)]="formularioprazo.data" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+              <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Data de Entrega <span style="color: red;">*</span></label>
+              <input type="date" [(ngModel)]="formularioprazo.data" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000;" />
             </div>
             <div style="flex: 1;">
-              <label style="font-weight: 500; display: block; margin-bottom: 5px;">Hora <span style="color: red;">*</span></label>
-              <input type="time" [(ngModel)]="formularioprazo.hora" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;" />
+              <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Hora <span style="color: red;">*</span></label>
+              <input type="time" [(ngModel)]="formularioprazo.hora" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000;" />
             </div>
           </div>
 
           <div style="display: flex; gap: 15px;">
-            <div class="container-disciplina" style="flex: 1;">
-              <style>
-                .container-disciplina input::-webkit-calendar-picker-indicator {
-                  display: none !important;
-                  -webkit-appearance: none !important;
-                }
-              </style>
-
-              <label style="font-weight: 500; display: block; margin-bottom: 5px;">Disciplina <span style="color: red;">*</span></label>
-              
-              <input 
-                type="text" 
-                [(ngModel)]="formularioprazo.disciplina" 
-                list="disciplinas-sugestoes" 
-                placeholder="Escreve ou seleciona..."
-                style="width: 100%; padding: 12px 35px 12px 12px; border-radius: 10px; border: 1px solid #333; background-color: #f5f5f5; color: #333;
-                       background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E');
-                       background-repeat: no-repeat;
-                       background-position: right 14px center;
-                       background-size: 14px auto;
-                       -webkit-appearance: none;
-                       -moz-appearance: none;
-                       appearance: none;" 
-              />
-              
-              <datalist id="disciplinas-sugestoes">
-                <option value="IHM (Interação Homem-Máquina)"></option>
-                <option value="Programação Móvel"></option>
-                <option value="Bases de Dados"></option>
-                <option value="Engenharia de Software"></option>
-                <option value="Sistemas Operativos"></option>
-                <option value="Redes de Computadores"></option>
-                <option value="Inteligência Artificial"></option>
-                <option value="Matemática Computacional"></option>
-              </datalist>
+            <div style="flex: 1;">
+              <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Disciplina <span style="color: red;">*</span></label>
+              <select [(ngModel)]="formularioprazo.disciplina" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; outline: none; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23333\' stroke-width=\'2\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;">
+                <option value="" disabled selected hidden>Seleciona...</option>
+                <option value="IHM (Interação Homem-Máquina)">IHM (Interação Homem-Máquina)</option>
+                <option value="Programação Móvel">Programação Móvel</option>
+                <option value="Bases de Dados">Bases de Dados</option>
+                <option value="Engenharia de Software">Engenharia de Software</option>
+                <option value="Sistemas Operativos">Sistemas Operativos</option>
+                <option value="Redes de Computadores">Redes de Computadores</option>
+                <option value="Inteligência Artificial">Inteligência Artificial</option>
+                <option value="Matemática Computacional">Matemática Computacional</option>
+              </select>
             </div>
             
             <div style="flex: 1;">
-              <label style="font-weight: 500; display: block; margin-bottom: 5px;">Prioridade</label>
-              <select [(ngModel)]="formularioprazo.prioridade" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #f5f5f5;">
+              <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Prioridade</label>
+              <select [(ngModel)]="formularioprazo.prioridade" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; outline: none; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23333\' stroke-width=\'2\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;">
                 <option value="baixa">Baixa</option>
                 <option value="media">Média</option>
                 <option value="alta">Alta</option>
@@ -167,16 +262,16 @@
             </div>
           </div>
 
-          <div style="background: #f5f5f5; border: 1px solid #333; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <div style="background: #f5f5f5; border: 1px solid #ccc; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
             <div>
-              <strong style="display: block; font-size: 16px;">Ativar a Notificação</strong>
+              <strong style="display: block; font-size: 16px; color: #000;">Ativar a Notificação</strong>
               <small style="color: #8c8c8c;">Receber alertas 3 dias antes e 1 dia antes</small>
             </div>
             <ion-toggle color="primary" [(ngModel)]="formularioprazo.notificacao"></ion-toggle>
           </div>
 
           <div style="display: flex; gap: 15px; margin-top: 25px;">
-            <button (click)="modal.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #333; background: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
+            <button (click)="modal.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #ccc; background: #ffffff; color: #000; font-weight: bold; font-size: 16px; cursor: pointer;">
               Cancelar
             </button>
             <button (click)="guardarNovoPrazo(modal)" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: #5c6bc0; color: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
