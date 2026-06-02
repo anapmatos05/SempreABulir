@@ -1,40 +1,12 @@
 <ion-app>
-  <ion-header [translucent]="true" class="ion-no-border">
-    <ion-toolbar color="primary" style="padding: 10px 20px;">
-      <ion-buttons slot="start">
-        <ion-menu-button></ion-menu-button>
-      </ion-buttons>
-      
-      <div>
-        <ion-title style="font-size: 24px; font-weight: bold; padding: 0;">Agenda Académica</ion-title>
-        <small style="opacity: 0.7;">ESTG - IPVC</small>
-      </div>
-
-      <ion-buttons slot="end" style="text-align: right; display: block;">
-        <div style="display: flex; align-items: center; justify-content: flex-end;">
-          <ion-icon name="notifications" style="margin-right: 8px; font-size: 18px; color: #0052CC;"></ion-icon>
-          <strong style="font-size: 20px; color: #000;">Ana Matos</strong>
-        </div>
-        <small style="display: block; opacity: 0.7; color: #000; margin-top: -4px;">Aluno</small>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
-
-  <ion-split-pane contentId="main-content" style="height: calc(100% - 74px);">
+  <ion-split-pane contentId="main-content" when="false">
     
     <ion-menu contentId="main-content" type="overlay">
       <ion-content style="--background: #ffffff; padding: 5px;">
-        
-        <div style="background: #f5f5f5; border-radius: 12px; padding: 10px; margin: 74px 10px 20px 10px;">
+        <div style="background: #f5f5f5; border-radius: 12px; padding: 10px; margin: 30px 10px 20px 10px;">
           <ion-list lines="none" style="background: transparent; padding: 0;">
             <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages; let i = index">
-              <ion-item 
-                routerDirection="forward" 
-                [routerLink]="[p.url]" 
-                routerLinkActive="selected" 
-                detail="false"
-                style="--background: transparent; --background-activated: #e0e0e0; border-radius: 8px; margin-bottom: 5px;"
-              >
+              <ion-item routerDirection="forward" [routerLink]="[p.url]" routerLinkActive="selected" detail="false" style="--background: transparent; --background-activated: #e0e0e0; border-radius: 8px; margin-bottom: 5px;">
                 <ion-icon aria-hidden="true" slot="start" [name]="p.icon" style="color: #333; margin-right: 15px; font-size: 20px;"></ion-icon>
                 <ion-label style="color: #333; font-weight: 500; font-size: 16px;">
                   {{ p.title }}
@@ -43,7 +15,6 @@
             </ion-menu-toggle>
           </ion-list>
         </div>
-
       </ion-content>
     </ion-menu>
 

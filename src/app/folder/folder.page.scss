@@ -33,3 +33,18 @@ ion-modal {
   --border-radius: 16px;
   --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
 }
+
+/* =========================================
+   ESTRUTURA DO CABEÇALHO (BASE - COMPUTADOR)
+   ========================================= */
+.cabecalho-desktop {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+}
+
+.cabecalho-mobile {
+  display: none; /* Escondido no Computador */
+}

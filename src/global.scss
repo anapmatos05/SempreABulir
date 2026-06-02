@@ -1,12 +1,6 @@
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
 /* Core CSS required for Ionic components to work properly */
@@ -25,13 +19,33 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* =========================================
+   REGRAS PARA A VERSÃO MOBILE
+   Esconde o menu lateral e textos extra no telemóvel
+   ========================================= */
+@media (max-width: 768px) {
+  .esconder-mobile {
+    display: none !important;
+  }
+
+  /* Forçar a ocultação dos botões do menu no telemóvel */
+  ion-buttons[slot="start"],
+  ion-menu-button {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   POPOVER CUSTOMIZADO (A Vitória Final)
+   ============================================================================ */
+ion-popover.menu-perfeito {
+  /* Largura matemática perfeita (Ecrã - margens do teu layout) */
+  --width: calc(100vw - 52px) !important;
+}
+
+ion-popover.menu-perfeito::part(content) {
+  border-radius: 10px !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12) !important;
+  margin-top: 5px !important;
+}

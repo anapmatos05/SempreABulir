@@ -1,17 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Storage } from '@ionic/storage-angular'; // IMPORTAÇÃO DO STORAGE
 
-interface DiaSemana {
-  nome: string;
-  numero: number;
-  isHoje: boolean;
-  dataCompleta: Date;
-  temPrazo: boolean;
-  prazoTitulo?: string;
-  prazoHora?: string;
-}
-
-interface NovoPrazo {
+// Interfaces base para não dar erros no TypeScript
+export interface NovoPrazo {
   titulo: string;
   descricao: string;
   data: string;
@@ -20,6 +12,16 @@ interface NovoPrazo {
   prioridade: string;
   notificacao: boolean;
   estado: 'Pendente' | 'Em Progresso' | 'Concluída';
+}
+
+export interface DiaSemana {
+  nome: string;
+  numero: number;
+  isHoje: boolean;
+  dataCompleta: Date;
+  temPrazo: boolean;
+  prazoTitulo?: string;
+  prazoHora?: string;
 }
 
 @Component({
@@ -49,43 +51,27 @@ export class FolderPage implements OnInit {
     estado: 'Pendente'
   };
 
-  // Lista global de prazos com os nomes corrigidos para as tuas disciplinas oficiais
-  public listaDePrazos: NovoPrazo[] = [
-    {
-      titulo: 'Relatório SO - Gestão de Memória',
-      descricao: 'Escrever relatório sobre algoritmos de gestão de memória em sistemas operativos',
-      data: '2026-05-21',
-      hora: '23:00',
-      disciplina: 'Sistemas Operativos',
-      prioridade: 'alta',
-      notificacao: false,
-      estado: 'Em Progresso'
-    },
-    {
-      titulo: 'Trabalho REDSIS - Protocolo TCP/IP',
-      descricao: 'Análise detalhada do protocolo TCP/IP e implementação de exemplo',
-      data: '2026-05-22',
-      hora: '18:00',
-      disciplina: 'Redes de Computadores',
-      prioridade: 'alta',
-      notificacao: false,
-      estado: 'Pendente'
-    },
-    {
-      titulo: 'Apresentação INTHOM - Projeto Final',
-      descricao: 'Apresentação do projeto de análise de tarefas e modelo conceptual',
-      data: '2026-05-23',
-      hora: '18:00',
-      disciplina: 'IHM (Interação Homem-Máquina)',
-      prioridade: 'alta',
-      notificacao: false,
-      estado: 'Em Progresso'
-    }
-  ];
+  // Lista global de prazos
+  public listaDePrazos: NovoPrazo[] = [];
 
-  constructor(private activatedRoute: ActivatedRoute) { }
+  // ==========================================
+  // VARIÁVEIS DA ABA GRUPOS
+  // ==========================================
+  public listaGrupos: any[] = []; 
+  public novoGrupo: any = { nome: '', disciplina: '', membros: ['Ana Matos'] };
+  public novoMembroNome: string = '';
 
-  ngOnInit() {
+  // INJEÇÃO DO STORAGE NO CONSTRUTOR
+  constructor(private activatedRoute: ActivatedRoute, private storage: Storage) { }
+
+  async ngOnInit() {
+    // 1. Inicializa a base de dados local
+    await this.storage.create();
+    
+    // 2. Carrega os dados gravados anteriormente
+    await this.carregarDadosDoStorage();
+
+    // 3. Lógica de navegação existente
     this.activatedRoute.paramMap.subscribe(params => {
       const idRota = params.get('id') || 'calendario';
       this.folder = idRota.toLowerCase();
@@ -96,6 +82,92 @@ export class FolderPage implements OnInit {
     });
   }
 
+  // ==========================================
+  // MÉTODOS DO STORAGE (LEITURA)
+  // ==========================================
+  async carregarDadosDoStorage() {
+    const tarefasGuardadas = await this.storage.get('meus_prazos');
+    if (tarefasGuardadas && tarefasGuardadas.length > 0) {
+      this.listaDePrazos = tarefasGuardadas;
+    } else {
+      // Se estiver vazio, carrega os teus dados de demonstração
+      this.listaDePrazos = [
+        {
+          titulo: 'Relatório SO - Gestão de Memória',
+          descricao: 'Escrever relatório sobre algoritmos de gestão de memória em sistemas operativos',
+          data: '2026-05-21',
+          hora: '23:00',
+          disciplina: 'Sistemas Operativos',
+          prioridade: 'alta',
+          notificacao: false,
+          estado: 'Em Progresso'
+        },
+        {
+          titulo: 'Trabalho REDSIS - Protocolo TCP/IP',
+          descricao: 'Análise detalhada do protocolo TCP/IP e implementação de exemplo',
+          data: '2026-05-22',
+          hora: '18:00',
+          disciplina: 'Redes de Computadores',
+          prioridade: 'alta',
+          notificacao: false,
+          estado: 'Pendente'
+        }
+      ];
+    }
+
+    const gruposGuardados = await this.storage.get('meus_grupos');
+    if (gruposGuardados) {
+      this.listaGrupos = gruposGuardados;
+    }
+  }
+
+  // ==========================================
+  // MÉTODOS DOS GRUPOS
+  // ==========================================
+  adicionarMembroAoGrupo() {
+    if (this.novoMembroNome.trim() !== '') {
+      this.novoGrupo.membros.push(this.novoMembroNome.trim());
+      this.novoMembroNome = '';
+    }
+  }
+
+  removerMembroTemporario(index: number) {
+    this.novoGrupo.membros.splice(index, 1);
+  }
+
+  guardarNovoGrupo(modal: any) {
+    if (this.novoGrupo.nome.trim() !== '' && this.novoGrupo.disciplina.trim() !== '') {
+      this.listaGrupos.push({
+        nome: this.novoGrupo.nome,
+        disciplina: this.novoGrupo.disciplina,
+        membros: [...this.novoGrupo.membros],
+        tarefas: []
+      });
+
+      // Grava no Storage
+      this.storage.set('meus_grupos', this.listaGrupos);
+
+      this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
+      modal.dismiss();
+    } else {
+      alert('Por favor, preenche o Nome do Grupo e a Disciplina.');
+    }
+  }
+
+  apagarGrupo(grupoParaApagar: any) {
+    this.listaGrupos = this.listaGrupos.filter(g => g !== grupoParaApagar);
+    this.storage.set('meus_grupos', this.listaGrupos); // Grava no Storage
+  }
+
+  obterIniciais(nome: string): string {
+    let partes = nome.trim().split(' ');
+    if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
+    return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
+  }
+
+  // ==========================================
+  // MÉTODOS DOS PRAZOS / CALENDÁRIO
+  // ==========================================
   prazoJaExpirou(dataString: string, horaString: string): boolean {
     if (!dataString) return false;
     const horaPrazo = horaString || '23:59';
@@ -108,7 +180,6 @@ export class FolderPage implements OnInit {
     return this.listaDePrazos.filter(p => !this.prazoJaExpirou(p.data, p.hora) && p.estado !== 'Concluída').length;
   }
 
-  // Lista estática com as tuas 8 disciplinas do semestre para o filtro do ecrã
   get listaDisciplinasUnicas(): string[] {
     return [
       'IHM (Interação Homem-Máquina)',
@@ -158,20 +229,21 @@ export class FolderPage implements OnInit {
     return `${diferencaDias} dias`;
   }
 
+  // Novo método para agrupar as tarefas na interface
+  obterTarefasFiltradasPorEstado(estado: string): NovoPrazo[] {
+    return this.tarefasFiltradas.filter(t => t.estado === estado);
+  }
+
   gerarSemanaAtual() {
     const hoje = new Date();
-    const diaSemanaAtual = hoje.getDay();
-    
-    const segundaFeira = new Date(hoje);
-    const distanciaParaSegunda = diaSemanaAtual === 0 ? -6 : 1 - diaSemanaAtual;
-    segundaFeira.setDate(hoje.getDate() + distanciaParaSegunda);
-
-    const nomesDias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
+    // Array com os dias para os dias seguintes (0 = Domingo, 6 = Sábado)
+    const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     this.diasDaSemana = [];
 
-    for (let i = 0; i < 5; i++) {
-      const dataDia = new Date(segundaFeira);
-      dataDia.setDate(segundaFeira.getDate() + i);
+    // Gera apenas 4 dias, sempre a começar no dia de hoje (i = 0)
+    for (let i = 0; i < 4; i++) {
+      const dataDia = new Date(hoje);
+      dataDia.setDate(hoje.getDate() + i);
 
       const prazoDoDia = this.listaDePrazos.find(prazo => {
         const dataPrazo = new Date(prazo.data);
@@ -179,9 +251,10 @@ export class FolderPage implements OnInit {
       });
 
       this.diasDaSemana.push({
-        nome: nomesDias[i],
+        // UX Inteligente: Mostra 'Hoje' e 'Amanhã' em vez de apenas o dia da semana
+        nome: i === 0 ? 'Hoje' : (i === 1 ? 'Amanhã' : nomesDias[dataDia.getDay()]),
         numero: dataDia.getDate(),
-        isHoje: this.isMesmoDia(hoje, dataDia),
+        isHoje: i === 0, 
         dataCompleta: dataDia,
         temPrazo: !!prazoDoDia,
         prazoTitulo: prazoDoDia ? prazoDoDia.titulo : undefined,
@@ -197,6 +270,9 @@ export class FolderPage implements OnInit {
     }
 
     this.listaDePrazos.push({ ...this.formularioprazo, estado: 'Pendente' });
+    
+    // Grava a lista atualizada no Storage
+    this.storage.set('meus_prazos', this.listaDePrazos);
 
     if (this.folder === 'calendario') {
       this.gerarSemanaAtual();
@@ -218,6 +294,10 @@ export class FolderPage implements OnInit {
 
   alterarEstadoTarefa(tarefa: NovoPrazo, novoEstado: 'Pendente' | 'Em Progresso' | 'Concluída') {
     tarefa.estado = novoEstado;
+    
+    // Grava a alteração de estado no Storage
+    this.storage.set('meus_prazos', this.listaDePrazos);
+
     if (this.folder === 'calendario') this.gerarSemanaAtual();
   }
 
