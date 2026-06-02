@@ -229,20 +229,21 @@ export class FolderPage implements OnInit {
     return `${diferencaDias} dias`;
   }
 
+  // Novo método para agrupar as tarefas na interface
+  obterTarefasFiltradasPorEstado(estado: string): NovoPrazo[] {
+    return this.tarefasFiltradas.filter(t => t.estado === estado);
+  }
+
   gerarSemanaAtual() {
     const hoje = new Date();
-    const diaSemanaAtual = hoje.getDay();
-    
-    const segundaFeira = new Date(hoje);
-    const distanciaParaSegunda = diaSemanaAtual === 0 ? -6 : 1 - diaSemanaAtual;
-    segundaFeira.setDate(hoje.getDate() + distanciaParaSegunda);
-
-    const nomesDias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
+    // Array com os dias para os dias seguintes (0 = Domingo, 6 = Sábado)
+    const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     this.diasDaSemana = [];
 
-    for (let i = 0; i < 5; i++) {
-      const dataDia = new Date(segundaFeira);
-      dataDia.setDate(segundaFeira.getDate() + i);
+    // Gera apenas 4 dias, sempre a começar no dia de hoje (i = 0)
+    for (let i = 0; i < 4; i++) {
+      const dataDia = new Date(hoje);
+      dataDia.setDate(hoje.getDate() + i);
 
       const prazoDoDia = this.listaDePrazos.find(prazo => {
         const dataPrazo = new Date(prazo.data);
@@ -250,9 +251,10 @@ export class FolderPage implements OnInit {
       });
 
       this.diasDaSemana.push({
-        nome: nomesDias[i],
+        // UX Inteligente: Mostra 'Hoje' e 'Amanhã' em vez de apenas o dia da semana
+        nome: i === 0 ? 'Hoje' : (i === 1 ? 'Amanhã' : nomesDias[dataDia.getDay()]),
         numero: dataDia.getDate(),
-        isHoje: this.isMesmoDia(hoje, dataDia),
+        isHoje: i === 0, 
         dataCompleta: dataDia,
         temPrazo: !!prazoDoDia,
         prazoTitulo: prazoDoDia ? prazoDoDia.titulo : undefined,
