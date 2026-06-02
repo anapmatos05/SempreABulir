@@ -48,27 +48,3 @@ ion-modal {
 .cabecalho-mobile {
   display: none; /* Escondido no Computador */
 }
-
-/* =========================================
-   REGRAS PARA TELEMÓVEL (MENOS DE 768px)
-   ========================================= */
-@media (max-width: 768px) {
-  
-  /* Classe matadora para esconder tudo o que não queremos */
-  .esconder-mobile {
-    display: none !important;
-  }
-
-  /* Esconde o cabeçalho grande e mostra o pequeno */
-  .cabecalho-desktop {
-    display: none !important;
-  }
-  
-  .cabecalho-mobile {
-    display: flex !important;
-    width: 100%;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 15px;
-  }
-}
