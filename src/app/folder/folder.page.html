@@ -1,4 +1,34 @@
-<ion-content [fullscreen]="true" class="ion-padding" style="--background: #ffffff; --padding-top: 74px;">
+<ion-header class="ion-no-border">
+  <ion-toolbar style="--background: #f4c20d; color: #000;">
+    
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    
+    <ion-title>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        
+        <div style="line-height: 1.2;">
+          <strong style="font-size: 18px;">Agenda Académica</strong>
+          <div class="esconder-mobile" style="font-size: 10px; font-weight: normal;">ESTG - IPVC</div>
+        </div>
+        
+        <div style="display: flex; align-items: center;">
+          <ion-icon name="notifications" style="color: #0052cc; font-size: 24px; margin-right: 8px;"></ion-icon>
+          
+          <div class="esconder-mobile" style="text-align: right; line-height: 1.1;">
+            <strong style="font-size: 14px; display: block;">Ana Matos</strong>
+            <small style="font-size: 10px;">Aluno</small>
+          </div>
+        </div>
+
+      </div>
+    </ion-title>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding" style="--background: #ffffff;">
 
   <div *ngIf="folder === 'calendario'">
     <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 10px;">
@@ -6,7 +36,7 @@
         <h1 style="font-weight: bold; margin: 0; font-size: 28px;">Calendário</h1>
         <p style="margin: 5px 0 0 0; color: #8c8c8c; font-size: 14px;">Visão geral dos teus prazos académicos</p>
       </div>
-      <ion-button (click)="modal.present()" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
+      <ion-button class="ion-hide-md-down" (click)="modal.present()" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
         <ion-icon slot="start" name="add"></ion-icon>
         Adicionar Prazo
       </ion-button>
@@ -83,13 +113,12 @@
   </div>
 
   <div *ngIf="folder === 'tarefas'" style="padding: 10px;">
-    
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <div>
         <h1 style="font-weight: bold; margin: 0; font-size: 32px; color: #000;">Tarefas</h1>
         <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Gestão completa de prazos e entregas</p>
       </div>
-      <ion-button (click)="modal.present()" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
+      <ion-button class="ion-hide-md-down" (click)="modal.present()" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
         <ion-icon slot="start" name="add"></ion-icon>
         Adicionar Prazo
       </ion-button>
@@ -128,7 +157,6 @@
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 15px;">
-      
       <div *ngFor="let tarefa of tarefasFiltradas" style="background: #f5f5f5; border-radius: 14px; padding: 18px; display: flex; align-items: center; justify-content: space-between; position: relative;">
         
         <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1;">
@@ -188,16 +216,20 @@
             </ng-template>
           </ion-popover>
         </div>
-
       </div>
 
       <div *ngIf="tarefasFiltradas.length === 0" style="text-align: center; padding: 40px; color: #8c8c8c;">
         <ion-icon name="folder-open-outline" style="font-size: 48px; margin-bottom: 10px;"></ion-icon>
         <p>Nenhuma tarefa encontrada para esta seleção.</p>
       </div>
-
     </div>
   </div>
+
+  <ion-fab class="ion-hide-md-up" vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="modal.present()" color="primary">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
   <ion-modal #modal>
     <ng-template>
@@ -225,19 +257,19 @@
             <textarea rows="4" [(ngModel)]="formularioprazo.descricao" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; resize: none;"></textarea>
           </div>
 
-          <div style="display: flex; gap: 15px;">
-            <div style="flex: 1;">
+          <ion-row style="padding: 0; margin: 0 -5px;">
+            <ion-col size="12" size-md="6" style="padding: 0 5px;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Data de Entrega <span style="color: red;">*</span></label>
               <input type="date" [(ngModel)]="formularioprazo.data" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000;" />
-            </div>
-            <div style="flex: 1;">
+            </ion-col>
+            <ion-col size="12" size-md="6" style="padding: 0 5px;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Hora <span style="color: red;">*</span></label>
               <input type="time" [(ngModel)]="formularioprazo.hora" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000;" />
-            </div>
-          </div>
+            </ion-col>
+          </ion-row>
 
-          <div style="display: flex; gap: 15px;">
-            <div style="flex: 1;">
+          <ion-row style="padding: 0; margin: 0 -5px;">
+            <ion-col size="12" size-md="6" style="padding: 0 5px;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Disciplina <span style="color: red;">*</span></label>
               <select [(ngModel)]="formularioprazo.disciplina" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; outline: none; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23333\' stroke-width=\'2\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;">
                 <option value="" disabled selected hidden>Seleciona...</option>
@@ -250,17 +282,17 @@
                 <option value="Inteligência Artificial">Inteligência Artificial</option>
                 <option value="Matemática Computacional">Matemática Computacional</option>
               </select>
-            </div>
+            </ion-col>
             
-            <div style="flex: 1;">
+            <ion-col size="12" size-md="6" style="padding: 0 5px;">
               <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Prioridade</label>
               <select [(ngModel)]="formularioprazo.prioridade" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; outline: none; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23333\' stroke-width=\'2\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;">
                 <option value="baixa">Baixa</option>
                 <option value="media">Média</option>
                 <option value="alta">Alta</option>
               </select>
-            </div>
-          </div>
+            </ion-col>
+          </ion-row>
 
           <div style="background: #f5f5f5; border: 1px solid #ccc; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
             <div>
@@ -285,3 +317,24 @@
   </ion-modal>
 
 </ion-content>
+
+<ion-footer class="ion-hide-md-up">
+  <ion-tab-bar style="--background: #ffffff; border-top: 1px solid #e0e0e0;">
+    
+    <ion-tab-button (click)="folder = 'calendario'" [style.color]="folder === 'calendario' ? '#0052CC' : '#8c8c8c'">
+      <ion-icon [name]="folder === 'calendario' ? 'calendar' : 'calendar-outline'"></ion-icon>
+      <ion-label>Calendário</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button (click)="folder = 'tarefas'" [style.color]="folder === 'tarefas' ? '#0052CC' : '#8c8c8c'">
+      <ion-icon [name]="folder === 'tarefas' ? 'checkbox' : 'checkbox-outline'"></ion-icon>
+      <ion-label>Tarefas</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button (click)="folder = 'grupos'" [style.color]="folder === 'grupos' ? '#0052CC' : '#8c8c8c'">
+      <ion-icon [name]="folder === 'grupos' ? 'people' : 'people-outline'"></ion-icon>
+      <ion-label>Grupos</ion-label>
+    </ion-tab-button>
+
+  </ion-tab-bar>
+</ion-footer>

@@ -35,3 +35,19 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+/* =========================================
+   REGRAS PARA A VERSÃO MOBILE
+   Esconde o menu lateral e textos extra no telemóvel
+   ========================================= */
+@media (max-width: 768px) {
+  .esconder-mobile {
+    display: none !important;
+  }
+
+  /* Forçar a ocultação dos botões do menu no telemóvel */
+  ion-buttons[slot="start"],
+  ion-menu-button {
+    display: none !important;
+  }
+}

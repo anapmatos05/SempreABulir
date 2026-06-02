@@ -33,3 +33,17 @@ ion-modal {
   --border-radius: 16px;
   --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
 }
+
+/* Esconde elementos em ecrãs com largura de telemóvel/tablet pequeno */
+@media (max-width: 768px) {
+  /* Classe genérica para esconder textos extras no mobile */
+  .esconder-mobile {
+    display: none !important;
+  }
+  
+  /* Ataca diretamente o componente do menu do Ionic */
+  ion-menu-button,
+  ion-buttons[slot="start"] {
+    display: none !important;
+  }
+}
