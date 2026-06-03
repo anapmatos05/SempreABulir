@@ -4,6 +4,7 @@ import { DataService, NovoPrazo, DiaSemana } from '../services/data'; // Ajusta 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NavController } from '@ionic/angular';
 
+
 @Component({
   selector: 'app-folder',
   templateUrl: './folder.page.html',
@@ -49,10 +50,7 @@ export class FolderPage implements OnInit {
     this.activatedRoute.paramMap.subscribe(params => {
       const idRota = params.get('id') || 'calendario';
       this.folder = idRota.toLowerCase();
-      
-      if (this.folder === 'calendario') {
-        this.gerarSemanaAtual();
-      }
+      this.gerarSemanaAtual();
     });
   }
 
@@ -184,21 +182,32 @@ export class FolderPage implements OnInit {
   }
 
   guardarNovoPrazo(modal: any) {
-    // Se o formulário tiver erros, não faz nada
     if (this.prazoForm.invalid) {
+      alert('Por favor, preenche todos os campos obrigatórios.');
       return; 
     }
 
-    // Vai buscar os dados limpinhos ao formulário
-    const dadosFormulario = this.prazoForm.value;
+    // Criamos o objeto completo conforme a interface NovoPrazo que o teu Service espera
+    const novaTarefa: NovoPrazo = {
+      titulo: this.prazoForm.value.titulo,
+      descricao: this.prazoForm.value.descricao,
+      data: this.prazoForm.value.data,
+      hora: this.prazoForm.value.hora,
+      disciplina: this.prazoForm.value.disciplina,
+      prioridade: this.prazoForm.value.prioridade,
+      notificacao: this.prazoForm.value.notificacao,
+      estado: 'Pendente' // Estado inicial padrão
+    };
 
-    // AQUI COLOCAS A LÓGICA QUE JÁ TINHAS PARA GUARDAR NO SERVIÇO. 
-    // Exemplo: this.dataService.adicionarTarefa(dadosFormulario);
+    // Agora sim, enviamos para o teu Service!
+    this.dataService.adicionarTarefa(novaTarefa); 
 
-    console.log('Dados a gravar:', dadosFormulario);
-
-    // Limpa o formulário e fecha o modal
+    // Limpa o formulário e fecha
     this.prazoForm.reset({ prioridade: 'media', notificacao: false });
+    
+    // Se estivermos no calendário, atualizamos a vista dos dias
+    if (this.folder === 'calendario') this.gerarSemanaAtual();
+    
     modal.dismiss();
   }
 

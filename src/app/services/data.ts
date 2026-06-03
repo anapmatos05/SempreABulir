@@ -114,4 +114,8 @@ export class DataService {
     this.listaGrupos = this.listaGrupos.filter(g => g !== grupoParaApagar);
     await this.storage.set('meus_grupos', this.listaGrupos);
   }
+  // Adiciona a nova tarefa à lista principal
+  adicionarTarefa(novaTarefa: NovoPrazo) {
+    this.listaDePrazos.push(novaTarefa);
+  }
 }

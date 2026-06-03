@@ -11,13 +11,12 @@ import { NavController } from '@ionic/angular';
 export class DetalheGrupoPage implements OnInit {
 
   public nomeDoGrupo: string = '';
-  public abaAtiva: string = 'subtarefas'; // Controla qual o separador ativo no menu
+  public abaAtiva: string = 'subtarefas';
   
-  // Dados do grupo baseados no teu Storyboard
   public grupoDetalhado = {
     nome: 'Grupo INTHOM - Projeto Final',
     disciplina: 'IHM (Interação Homem-Máquina)',
-    progresso: 50, // Percentagem
+    progresso: 50,
     membros: [
       { nome: 'Ana Matos', email: 'ana.matos@estg.ipvc.pt' },
       { nome: 'Duarte Costa', email: 'duarte.costa@estg.ipvc.pt' }
@@ -28,10 +27,10 @@ export class DetalheGrupoPage implements OnInit {
     ]
   };
 
-  // Variáveis para a edição
   public novoMembroNome: string = '';
-  public novoMembroEmail: string = '';
   public grupoEmEdicao: any = {};
+  
+  public novaSubtarefa = { titulo: '', responsavel: '', data: '' };
 
   constructor(private route: ActivatedRoute, private navCtrl: NavController) { }
 
@@ -39,12 +38,9 @@ export class DetalheGrupoPage implements OnInit {
     const idRecebido = this.route.snapshot.paramMap.get('id');
     if (idRecebido) {
       this.nomeDoGrupo = idRecebido;
-      // Num cenário real, irias buscar os dados do grupo à BD com este ID
-      // this.grupoDetalhado.nome = idRecebido; 
     }
   }
 
-  // Navegação subtil no conteúdo (sem animação para manter o cabeçalho estático)
   voltarParaGrupos() {
     this.navCtrl.navigateBack('/folder/grupos', { animated: false });
   }
@@ -53,20 +49,26 @@ export class DetalheGrupoPage implements OnInit {
     return nome.substring(0, 1).toUpperCase();
   }
 
-  /* --- LÓGICA DE EDIÇÃO --- */
   abrirEdicao(modal: any) {
     this.grupoEmEdicao = JSON.parse(JSON.stringify(this.grupoDetalhado));
     modal.present();
   }
 
   adicionarMembroEdicao() {
-    if (this.novoMembroNome.trim().length > 0) {
+    const nomeLimpo = this.novoMembroNome.trim();
+    if (nomeLimpo.length > 0) {
+      // Gera o e-mail automaticamente (remove acentos, põe minúsculas e troca espaços por pontos)
+      const emailGerado = nomeLimpo
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, '.') + '@estg.ipvc.pt';
+
       this.grupoEmEdicao.membros.push({
-        nome: this.novoMembroNome.trim(),
-        email: this.novoMembroEmail.trim() || 'sem_email@estg.ipvc.pt'
+        nome: nomeLimpo,
+        email: emailGerado
       });
       this.novoMembroNome = '';
-      this.novoMembroEmail = '';
     }
   }
 
@@ -77,5 +79,38 @@ export class DetalheGrupoPage implements OnInit {
   guardarEdicao(modal: any) {
     this.grupoDetalhado = JSON.parse(JSON.stringify(this.grupoEmEdicao));
     modal.dismiss();
+  }
+
+  /* --- LÓGICA DA NOVA SUBTAREFA --- */
+  abrirNovaSubtarefa(modal: any) {
+    this.novaSubtarefa = { titulo: '', responsavel: '', data: '' };
+    modal.present();
+  }
+
+  guardarSubtarefa(modal: any) {
+    if (this.novaSubtarefa.titulo.trim().length > 0) {
+      this.grupoDetalhado.subtarefas.push({
+        titulo: this.novaSubtarefa.titulo,
+        responsavel: this.novaSubtarefa.responsavel || 'Por atribuir',
+        data: this.novaSubtarefa.data || new Date().toISOString().split('T')[0],
+        concluida: false
+      });
+      this.atualizarProgresso();
+      modal.dismiss();
+    }
+  }
+
+  alterarEstadoSubtarefa(tarefa: any) {
+    tarefa.concluida = !tarefa.concluida;
+    this.atualizarProgresso();
+  }
+
+  atualizarProgresso() {
+    if (this.grupoDetalhado.subtarefas.length === 0) {
+      this.grupoDetalhado.progresso = 0;
+      return;
+    }
+    const concluidas = this.grupoDetalhado.subtarefas.filter(t => t.concluida).length;
+    this.grupoDetalhado.progresso = Math.round((concluidas / this.grupoDetalhado.subtarefas.length) * 100);
   }
 }
