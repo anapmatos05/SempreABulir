@@ -14,6 +14,31 @@ import { NavController } from '@ionic/angular';
 export class FolderPage implements OnInit {
   public folder!: string;
   public diasDaSemana: DiaSemana[] = [];
+  // 1. Variável para guardar o dia em que o utilizador clicou (começa no dia de hoje)
+  public dataSelecionadaCalendario: string = new Date().toISOString();
+
+  // 2. Filtra as tarefas para mostrar apenas as do dia selecionado
+  get tarefasDoDiaSelecionado(): any[] {
+    if (!this.dataSelecionadaCalendario) return [];
+    
+    // O calendário devolve a data completa (ex: 2026-06-03T12:00:00)
+    // Nós só queremos a parte do dia (2026-06-03) para comparar
+    const dataLimpa = this.dataSelecionadaCalendario.split('T')[0];
+    
+    return this.listaDePrazos.filter(tarefa => tarefa.data === dataLimpa);
+  }
+
+  // 3. (BÓNUS) Cria as "bolinhas" de cor para pintar os dias no calendário!
+  get diasComCores() {
+    return this.listaDePrazos.map(tarefa => {
+      return {
+        date: tarefa.data,
+        textColor: '#000000',
+        // Verde se estiver concluída, amarelo se ainda estiver pendente
+        backgroundColor: tarefa.estado === 'Concluída' ? '#bbf7d0' : '#fde047' 
+      };
+    });
+  }
 
   // Variáveis para os filtros
   public termoPesquisa: string = '';
@@ -183,7 +208,7 @@ export class FolderPage implements OnInit {
       this.diasDaSemana.push({
         nome: i === 0 ? 'Hoje' : (i === 1 ? 'Amanhã' : nomesDias[dataDia.getDay()]),
         numero: dataDia.getDate(),
-        isHoje: i === 0,
+        isHoje: i === 0, // <-- O 'H' tem de ser maiúsculo!
         dataCompleta: dataDia,
         temPrazo: !!prazoDoDia,
         prazoTitulo: prazoDoDia ? prazoDoDia.titulo : undefined,
@@ -231,6 +256,22 @@ export class FolderPage implements OnInit {
   abrirGrupo(nomeDoGrupo: string) {
     // Navega para os detalhes do grupo sem animação de deslize
     this.navCtrl.navigateForward(['/detalhe-grupo', nomeDoGrupo], { animated: false });
+  }
+
+  // Procura a próxima tarefa agendada a partir da data que está selecionada
+  get proximaTarefaAgendada(): any[] {
+    const dataCalendario = this.dataSelecionadaCalendario.split('T')[0];
+    
+    // Filtra tarefas ativas que têm data MAIOR que a data clicada no calendário
+    const futuras = this.listaDePrazos.filter(t => 
+      t.estado !== 'Concluída' && t.data > dataCalendario
+    );
+    
+    // Ordena da mais próxima para a mais distante cronologicamente
+    futuras.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+    
+    // Devolvemos apenas a primeira tarefa (a mais próxima) num array para o HTML ler facilmente
+    return futuras.length > 0 ? [futuras[0]] : [];
   }
 
   private isMesmoDia(data1: Date, data2: Date): boolean {

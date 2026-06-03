@@ -18,7 +18,7 @@ export interface DiaSemana {
   nome: string;
   numero: number;
   isHoje: boolean;
-  dataCompleta: Date;
+  dataCompleta?: Date;
   temPrazo: boolean;
   prazoTitulo?: string;
   prazoHora?: string;
