@@ -35,10 +35,6 @@
         <h1 style="font-weight: bold; margin: 0; font-size: 32px; color: #000;">Calendário</h1>
         <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Visão geral dos teus prazos académicos</p>
       </div>
-      <ion-button class="ion-hide-md-down" (click)="modal.present()" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
-        <ion-icon slot="start" name="add"></ion-icon>
-        Adicionar Prazo
-      </ion-button>
     </div>
 
     <ion-grid>
@@ -60,7 +56,7 @@
               <strong style="color: #333;">Esta Semana</strong>
               <ion-icon name="calendar-outline" style="font-size: 20px; color: #555;"></ion-icon>
             </div>
-            <h1 style="font-size: 42px; font-weight: bold; color: #0052CC; margin: 15px 0 5px 0;">{{ prazosAtivosCount }}</h1>
+            <h1 style="font-size: 42px; font-weight: bold; color: var(--ion-color-amarelo-academico); margin: 15px 0 5px 0;">{{ prazosAtivosCount }}</h1>
             <small style="color: #8c8c8c;">0 concluídas</small>
           </ion-card>
         </ion-col>
@@ -83,16 +79,16 @@
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <h3 style="font-weight: bold; margin: 0; color: #333;">Próximos Dias</h3>
-              <ion-icon name="expand-outline" style="color: #0052CC; font-size: 20px;"></ion-icon>
+              <ion-icon name="expand-outline" style="color: var(--ion-color-amarelo-academico); font-size: 20px;"></ion-icon>
             </div>
             
             <div style="display: flex; justify-content: space-between; gap: 8px;">
               <div 
                 *ngFor="let dia of diasDaSemana"
-                [style.border]="dia.isHoje ? '2px solid #0052CC' : '1px solid #e0e0e0'"
+                [style.border]="dia.isHoje ? '2px solid var(--ion-color-amarelo-academico)' : '1px solid #e0e0e0'"
                 style="flex: 1; min-width: 0; background: #fff; border-radius: 12px; padding: 12px 2px; text-align: center; display: flex; flex-direction: column; justify-content: center;"
               >
-                <span [style.color]="dia.isHoje ? '#0052CC' : '#8c8c8c'" [style.font-weight]="dia.isHoje ? 'bold' : 'normal'" style="display: block; font-size: 12px;">{{ dia.nome }}</span>
+                <span [style.color]="dia.isHoje ? 'var(--ion-color-amarelo-academico)' : '#8c8c8c'" [style.font-weight]="dia.isHoje ? 'bold' : 'normal'" style="display: block; font-size: 12px;">{{ dia.nome }}</span>
                 <strong style="display: block; font-size: 20px; margin: 5px 0 10px 0; color: #000;">{{ dia.numero }}</strong>
                 
                 <div *ngIf="dia.temPrazo; else semPrazos">
@@ -121,10 +117,6 @@
         <h1 style="font-weight: bold; margin: 0; font-size: 32px; color: #000;">Tarefas</h1>
         <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Gestão completa de prazos e entregas</p>
       </div>
-      <ion-button (click)="modal.present()" color="secondary" style="--border-radius: 8px; font-weight: 500; text-transform: none;">
-        <ion-icon slot="start" name="add"></ion-icon>
-        Adicionar Prazo
-      </ion-button>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
@@ -167,8 +159,8 @@
       <div 
         *ngFor="let aba of ['Todas', 'Pendentes', 'Em Progresso', 'Concluídas']"
         (click)="abaAtiva = aba"
-        [style.background]="abaAtiva === aba ? '#0052cc' : '#f0f2f5'"
-        [style.color]="abaAtiva === aba ? '#ffffff' : '#666666'"
+        [style.background]="abaAtiva === aba ? 'var(--ion-color-amarelo-academico)' : '#f0f2f5'"
+        [style.color]="abaAtiva === aba ? '#000000' : '#666666'"
         style="padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center;"
       >
         <ion-icon 
@@ -204,13 +196,13 @@
                   
                   <ion-icon 
                     [name]="tarefa.estado === 'Concluída' ? 'checkmark-circle' : 'ellipse-outline'" 
-                    [style.color]="tarefa.estado === 'Concluída' ? '#0052cc' : (obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? '#d32f2f' : '#8c8c8c')"
+                    [style.color]="tarefa.estado === 'Concluída' ? 'var(--ion-color-amarelo-academico)' : (obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? 'var(--ion-color-vermelho-alerta)' : '#8c8c8c')"
                     style="font-size: 22px; margin-top: 1px; flex-shrink: 0; cursor: pointer;"
                     (click)="alterarEstadoTarefa(tarefa, tarefa.estado === 'Concluída' ? 'Pendente' : 'Concluída')"
                   ></ion-icon>
                   
                   <span 
-                    [style.color]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? '#d32f2f' : '#000'"
+                    [style.color]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? 'var(--ion-color-vermelho-alerta)' : '#000'"
                     [style.text-decoration]="tarefa.estado === 'Concluída' ? 'line-through' : 'none'"
                     style="font-size: 16px; font-weight: 600; line-height: 1.3;"
                   >
@@ -219,9 +211,8 @@
                 </div>
 
                 <div 
-                  [style.color]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? '#d32f2f' : '#333'"
+                  [style.color]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? 'var(--ion-color-vermelho-alerta)' : '#333'"
                   [style.background]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? '#ffebee' : '#f5f5f5'"
-                  [style.border]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? '1px solid #ffcdd2' : 'none'"
                   style="padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; white-space: nowrap; flex-shrink: 0;"
                 >
                   {{ obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? 'Atrasada' : obterDiasRestantesTexto(tarefa.data) }}
@@ -280,16 +271,12 @@
     
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <h1 style="font-weight: bold; margin: 0; font-size: 32px; color: #000;">Grupos de Trabalho</h1>
-      
-      <ion-button class="ion-hide-md-down" (click)="modalGrupo.present()" style="--background: #0052cc; --border-radius: 8px; width: 44px; height: 44px; --padding-start: 0; --padding-end: 0; margin: 0;">
-        <ion-icon name="add" style="font-size: 24px; color: white;"></ion-icon>
-      </ion-button>
     </div>
 
     <div *ngIf="listaGrupos.length === 0" style="text-align: center; padding: 50px 20px; color: #8c8c8c; background: #f9f9f9; border-radius: 16px; border: 2px dashed #e0e0e0;">
       <ion-icon name="people-outline" style="font-size: 48px; margin-bottom: 10px; color: #ccc;"></ion-icon>
       <p style="margin: 0; font-size: 16px;">Não tens grupos ativos.</p>
-      <small>Clica no botão azul <strong>+</strong> para criares o teu primeiro grupo.</small>
+      <small>Clica no botão <strong>+</strong> para criares o teu primeiro grupo.</small>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 15px;">
@@ -310,11 +297,11 @@
         </div>
         
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
-          <div *ngFor="let membro of grupo.membros" style="display: flex; align-items: center; border: 1px solid #e6ebf5; padding: 4px 12px 4px 4px; border-radius: 20px;">
-            <div style="background: #0052cc; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; margin-right: 8px;">
+          <div *ngFor="let membro of grupo.membros" style="display: flex; align-items: center; border: 1px solid #e0e0e0; background: #f9f9f9; padding: 4px 12px 4px 4px; border-radius: 20px;">
+            <div style="background: var(--ion-color-amarelo-academico); color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; margin-right: 8px;">
               {{ obterIniciais(membro) }}
             </div>
-            <span style="font-size: 13px; color: #333; font-weight: 500;">{{ membro }}</span>
+            <span style="font-size: 13px; color: #000; font-weight: 500;">{{ membro }}</span>
           </div>
         </div>
 
@@ -322,10 +309,10 @@
           <span style="font-size: 13px; font-weight: bold; color: #333;">Tarefas</span>
           <span style="font-size: 12px; color: #8c8c8c;">0/1</span>
         </div>
-        <ion-progress-bar value="0" style="--background: #f0f0f0; --progress-background: #0052cc; height: 4px; border-radius: 2px; margin-bottom: 15px;"></ion-progress-bar>
+        <ion-progress-bar value="0" style="--background: #f0f0f0; --progress-background: var(--ion-color-amarelo-academico); height: 4px; border-radius: 2px; margin-bottom: 15px;"></ion-progress-bar>
         
         <div style="display: flex; align-items: center; font-size: 13px; color: #666;">
-          <div style="width: 6px; height: 6px; border-radius: 50%; background: #0052cc; margin-right: 10px;"></div>
+          <div style="width: 6px; height: 6px; border-radius: 50%; background: var(--ion-color-amarelo-academico); margin-right: 10px;"></div>
           Sem tarefas registadas
         </div>
       </div>
@@ -362,16 +349,16 @@
             <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000; font-size: 14px;">Membros <span style="color: red;">*</span></label>
             <div style="display: flex; gap: 10px;">
               <input type="text" [(ngModel)]="novoMembroNome" placeholder="Nome do membro" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #000;" />
-              <button (click)="adicionarMembroAoGrupo()" style="background: #0052cc; color: white; border: none; border-radius: 10px; width: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <button (click)="adicionarMembroAoGrupo()" style="background: var(--ion-color-amarelo-academico); color: #000; border: none; border-radius: 10px; width: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                 <ion-icon name="person-add" style="font-size: 20px;"></ion-icon>
               </button>
             </div>
           </div>
 
           <div *ngIf="novoGrupo.membros.length > 0" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px;">
-            <div *ngFor="let membro of novoGrupo.membros; let i = index" style="background: #f0f4ff; border: 1px solid #cce0ff; color: #0052cc; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <div *ngFor="let membro of novoGrupo.membros; let i = index" style="background: #fffdf5; border: 1px solid #f5e08c; color: #000; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
               {{ membro }}
-              <ion-icon name="close-circle" (click)="removerMembroTemporario(i)" style="font-size: 16px; cursor: pointer;"></ion-icon>
+              <ion-icon name="close-circle" (click)="removerMembroTemporario(i)" style="font-size: 16px; cursor: pointer; color: var(--ion-color-amarelo-academico);"></ion-icon>
             </div>
           </div>
 
@@ -379,7 +366,7 @@
             <button (click)="modalGrupo.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #333; font-weight: bold; font-size: 16px; cursor: pointer;">
               Cancelar
             </button>
-            <button (click)="guardarNovoGrupo(modalGrupo)" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: #0052cc; color: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
+            <button (click)="guardarNovoGrupo(modalGrupo)" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: var(--ion-color-amarelo-academico); color: #000; font-weight: bold; font-size: 16px; cursor: pointer;">
               Criar Grupo
             </button>
           </div>
@@ -390,8 +377,8 @@
   </ion-modal>
 
   <ion-fab class="ion-hide-md-up" vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 10px;">
-    <ion-fab-button (click)="folder === 'grupos' ? modalGrupo.present() : modal.present()" color="primary">
-      <ion-icon name="add"></ion-icon>
+    <ion-fab-button (click)="folder === 'grupos' ? modalGrupo.present() : modal.present()" color="amarelo-academico">
+      <ion-icon name="add" style="color: #000;"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 
@@ -463,14 +450,14 @@
               <strong style="display: block; font-size: 16px; color: #000;">Ativar a Notificação</strong>
               <small style="color: #8c8c8c;">Receber alertas 3 dias antes e 1 dia antes</small>
             </div>
-            <ion-toggle color="primary" [(ngModel)]="formularioprazo.notificacao"></ion-toggle>
+            <ion-toggle color="amarelo-academico" [(ngModel)]="formularioprazo.notificacao"></ion-toggle>
           </div>
 
           <div style="display: flex; gap: 15px; margin-top: 25px;">
             <button (click)="modal.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #ccc; background: #ffffff; color: #000; font-weight: bold; font-size: 16px; cursor: pointer;">
               Cancelar
             </button>
-            <button (click)="guardarNovoPrazo(modal)" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: #5c6bc0; color: #ffffff; font-weight: bold; font-size: 16px; cursor: pointer;">
+            <button (click)="guardarNovoPrazo(modal)" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: var(--ion-color-amarelo-academico); color: #000; font-weight: bold; font-size: 16px; cursor: pointer;">
               Guardar Prazo
             </button>
           </div>
@@ -497,14 +484,14 @@
         
         <ion-datetime 
           presentation="date" 
-          color="primary" 
+          color="amarelo-academico" 
           style="border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); margin: 10px auto;">
         </ion-datetime>
         
-        <div style="margin-top: 30px; text-align: left; background: #f0f4ff; border-radius: 12px; padding: 15px;">
+        <div style="margin-top: 30px; text-align: left; background: #fffdf5; border-radius: 12px; padding: 15px; border: 1px solid #f5e08c;">
           <div style="display: flex; align-items: center; margin-bottom: 10px;">
-            <ion-icon name="information-circle" style="color: #0052cc; font-size: 20px; margin-right: 8px;"></ion-icon>
-            <strong style="color: #0052cc; font-size: 16px;">Visão Geral</strong>
+            <ion-icon name="information-circle" style="color: var(--ion-color-amarelo-academico); font-size: 20px; margin-right: 8px;"></ion-icon>
+            <strong style="color: #000; font-size: 16px;">Visão Geral</strong>
           </div>
           <p style="color: #333; font-size: 14px; margin: 0; line-height: 1.5;">
             Usa esta vista mensal para gerires o pico de entregas da tua época de exames e frequências.
@@ -520,19 +507,19 @@
 <ion-footer class="ion-hide-md-up">
   <ion-tab-bar style="--background: #ffffff; border-top: 1px solid #e0e0e0;">
     
-    <ion-tab-button (click)="folder = 'calendario'" [style.color]="folder === 'calendario' ? '#0052CC' : '#8c8c8c'">
+    <ion-tab-button (click)="folder = 'calendario'" [style.color]="folder === 'calendario' ? 'var(--ion-color-amarelo-academico)' : '#8c8c8c'">
       <ion-icon [name]="folder === 'calendario' ? 'calendar' : 'calendar-outline'"></ion-icon>
-      <ion-label>Calendário</ion-label>
+      <ion-label style="color: #000; font-weight: 500;">Calendário</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button (click)="folder = 'tarefas'" [style.color]="folder === 'tarefas' ? '#0052CC' : '#8c8c8c'">
+    <ion-tab-button (click)="folder = 'tarefas'" [style.color]="folder === 'tarefas' ? 'var(--ion-color-amarelo-academico)' : '#8c8c8c'">
       <ion-icon [name]="folder === 'tarefas' ? 'checkbox' : 'checkbox-outline'"></ion-icon>
-      <ion-label>Tarefas</ion-label>
+      <ion-label style="color: #000; font-weight: 500;">Tarefas</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button (click)="folder = 'grupos'" [style.color]="folder === 'grupos' ? '#0052CC' : '#8c8c8c'">
+    <ion-tab-button (click)="folder = 'grupos'" [style.color]="folder === 'grupos' ? 'var(--ion-color-amarelo-academico)' : '#8c8c8c'">
       <ion-icon [name]="folder === 'grupos' ? 'people' : 'people-outline'"></ion-icon>
-      <ion-label>Grupos</ion-label>
+      <ion-label style="color: #000; font-weight: 500;">Grupos</ion-label>
     </ion-tab-button>
 
   </ion-tab-bar>
