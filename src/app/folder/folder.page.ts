@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DataService, NovoPrazo, DiaSemana } from '../services/data'; // Ajusta o caminho se necessário
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-folder',
@@ -18,23 +19,29 @@ export class FolderPage implements OnInit {
   public abaAtiva: string = 'Todas';
 
   // Objeto do formulário
-  public formularioprazo: NovoPrazo = {
-    titulo: '',
-    descricao: '',
-    data: '',
-    hora: '',
-    disciplina: '',
-    prioridade: 'media',
-    notificacao: false,
-    estado: 'Pendente'
-  };
+  public prazoForm: FormGroup;
 
   // Variáveis dos Grupos
   public novoGrupo: any = { nome: '', disciplina: '', membros: ['Ana Matos'] };
   public novoMembroNome: string = '';
 
   // INJETAMOS O NOVO SERVIÇO AQUI
-  constructor(private activatedRoute: ActivatedRoute, private dataService: DataService) { }
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private dataService: DataService,
+    private fb: FormBuilder // <-- ADICIONA ISTO AQUI
+  ) {
+    // Inicializa o Formulário Reativo
+    this.prazoForm = this.fb.group({
+      titulo: ['', Validators.required],
+      descricao: [''],
+      data: ['', Validators.required],
+      hora: ['', Validators.required],
+      disciplina: ['', Validators.required],
+      prioridade: ['media'],
+      notificacao: [false]
+    });
+  }
 
   ngOnInit() {
     this.activatedRoute.paramMap.subscribe(params => {
@@ -175,16 +182,21 @@ export class FolderPage implements OnInit {
   }
 
   guardarNovoPrazo(modal: any) {
-    if (!this.formularioprazo.titulo || !this.formularioprazo.data || !this.formularioprazo.disciplina) {
-      alert('Por favor, preencha os campos obrigatórios (*)');
-      return;
+    // Se o formulário tiver erros, não faz nada
+    if (this.prazoForm.invalid) {
+      return; 
     }
 
-    this.dataService.adicionarPrazo(this.formularioprazo); // Delega para o Service
+    // Vai buscar os dados limpinhos ao formulário
+    const dadosFormulario = this.prazoForm.value;
 
-    if (this.folder === 'calendario') this.gerarSemanaAtual();
+    // AQUI COLOCAS A LÓGICA QUE JÁ TINHAS PARA GUARDAR NO SERVIÇO. 
+    // Exemplo: this.dataService.adicionarTarefa(dadosFormulario);
 
-    this.formularioprazo = { titulo: '', descricao: '', data: '', hora: '', disciplina: '', prioridade: 'media', notificacao: false, estado: 'Pendente' };
+    console.log('Dados a gravar:', dadosFormulario);
+
+    // Limpa o formulário e fecha o modal
+    this.prazoForm.reset({ prioridade: 'media', notificacao: false });
     modal.dismiss();
   }
 
