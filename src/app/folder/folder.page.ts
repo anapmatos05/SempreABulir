@@ -73,20 +73,31 @@ export class FolderPage implements OnInit {
   }
 
   guardarNovoGrupo(modal: any) {
-    if (this.novoGrupo.nome.trim() !== '' && this.novoGrupo.disciplina.trim() !== '') {
-      const grupoParaGravar = {
-        nome: this.novoGrupo.nome,
-        disciplina: this.novoGrupo.disciplina,
-        membros: [...this.novoGrupo.membros],
-        tarefas: []
-      };
-
-      this.dataService.adicionarGrupo(grupoParaGravar); // Delega para o Service
-      this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
-      modal.dismiss();
-    } else {
+    // 1. Verifica se os campos de texto estão preenchidos
+    if (this.novoGrupo.nome.trim() === '' || this.novoGrupo.disciplina.trim() === '') {
       alert('Por favor, preenche o Nome do Grupo e a Disciplina.');
+      return;
     }
+
+    // 2. A NOVA VALIDAÇÃO: Verifica se o grupo tem pelo menos 1 membro
+    if (this.novoGrupo.membros.length === 0) {
+      alert('O grupo não pode estar vazio! Adiciona pelo menos a ti próprio.');
+      return;
+    }
+
+    // Se passou nas duas validações, grava o grupo
+    const grupoParaGravar = {
+      nome: this.novoGrupo.nome,
+      disciplina: this.novoGrupo.disciplina,
+      membros: [...this.novoGrupo.membros],
+      tarefas: [] // Começa sem tarefas
+    };
+
+    this.dataService.adicionarGrupo(grupoParaGravar); 
+    
+    // Limpa o formulário e repõe a "Ana Matos" por defeito para o próximo grupo!
+    this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
+    modal.dismiss();
   }
 
   apagarGrupo(grupoParaApagar: any) {

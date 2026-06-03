@@ -334,7 +334,10 @@
 
           <div>
             <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000; font-size: 14px;">Disciplina <span style="color: red;">*</span></label>
-            <input type="text" [(ngModel)]="novoGrupo.disciplina" placeholder="Ex: IHM" style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #000;" />
+            <select [(ngModel)]="novoGrupo.disciplina" style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #000; outline: none; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23333\' stroke-width=\'2\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 14px center; background-size: 14px;">
+              <option value="" disabled selected hidden>Selecionar Disciplina...</option>
+              <option *ngFor="let disc of listaDisciplinasUnicas" [value]="disc">{{ disc }}</option>
+            </select>
           </div>
 
           <div>
@@ -358,7 +361,10 @@
             <button (click)="modalGrupo.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #333; font-weight: bold; font-size: 16px; cursor: pointer;">
               Cancelar
             </button>
-            <button (click)="guardarNovoGrupo(modalGrupo)" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: var(--ion-color-amarelo-academico); color: #000; font-weight: bold; font-size: 16px; cursor: pointer;">
+            <button (click)="guardarNovoGrupo(modalGrupo)" 
+                    [disabled]="novoGrupo.nome.trim() === '' || novoGrupo.disciplina === '' || novoGrupo.membros.length === 0"
+                    [style.opacity]="(novoGrupo.nome.trim() === '' || novoGrupo.disciplina === '' || novoGrupo.membros.length === 0) ? '0.5' : '1'"
+                    style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: var(--ion-color-amarelo-academico); color: #000; font-weight: bold; font-size: 16px; cursor: pointer; transition: opacity 0.3s;">
               Criar Grupo
             </button>
           </div>
@@ -369,18 +375,18 @@
   </ion-modal>
 
   <ion-fab class="ion-hide-md-up" vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 10px;">
-    <ion-fab-button (click)="folder === 'grupos' ? modalGrupo.present() : modal.present()" color="amarelo-academico">
+    <ion-fab-button (click)="folder === 'grupos' ? modalGrupo.present() : modalPrazo.present()" color="amarelo-academico">
       <ion-icon name="add" style="color: #000;"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 
-  <ion-modal #modal>
+  <ion-modal #modalPrazo [initialBreakpoint]="1" [breakpoints]="[0, 1]" style="--width: 100%;">
     <ng-template>
       <ion-header class="ion-no-border">
-        <ion-toolbar style="--background: #ffffff; padding: 10px 10px 0 10px;">
-          <ion-title style="font-weight: bold; font-size: 22px; color: #000; padding: 0;">Adicionar Novo Prazo</ion-title>
+        <ion-toolbar style="--background: #ffffff; padding: 5px 10px 0 10px;">
+          <ion-title style="font-weight: bold; font-size: 20px; color: #000; padding: 0;">Adicionar Novo Prazo</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="modal.dismiss()" style="color: #8c8c8c;">
+            <ion-button (click)="modalPrazo.dismiss()" style="color: #8c8c8c;">
               <ion-icon name="close" style="font-size: 24px;"></ion-icon>
             </ion-button>
           </ion-buttons>
@@ -389,69 +395,65 @@
 
       <ion-content class="ion-padding" style="--background: #ffffff;">
         
-        <!-- O formulário passa a ser gerido pela variável prazoForm -->
-        <form [formGroup]="prazoForm" style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+        <form [formGroup]="prazoForm" style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px; width: 100%; overflow-x: hidden;">
           
-          <div>
-            <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Título <span style="color: red;">*</span></label>
-            <input type="text" formControlName="titulo" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000;" />
+          <div style="width: 100%;">
+            <label style="font-weight: 500; display: block; margin-bottom: 2px; color: #000; font-size: 13px;">Título <span style="color: red;">*</span></label>
+            <input type="text" formControlName="titulo" placeholder="Ex: Relatório IHM" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #000;" />
           </div>
 
-          <div>
-            <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Descrição</label>
-            <textarea rows="4" formControlName="descricao" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; resize: none;"></textarea>
+          <div style="width: 100%;">
+            <label style="font-weight: 500; display: block; margin-bottom: 2px; color: #000; font-size: 13px;">Descrição</label>
+            <textarea rows="2" formControlName="descricao" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #000; resize: none;"></textarea>
           </div>
 
-          <ion-row style="padding: 0; margin: 0 -5px;">
-            <ion-col size="12" size-md="6" style="padding: 0 5px;">
-              <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Data de Entrega <span style="color: red;">*</span></label>
-              <input type="date" formControlName="data" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000;" />
-            </ion-col>
-            <ion-col size="12" size-md="6" style="padding: 0 5px;">
-              <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Hora <span style="color: red;">*</span></label>
-              <input type="time" formControlName="hora" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000;" />
-            </ion-col>
-          </ion-row>
+          <div style="width: 100%;">
+            <label style="font-weight: 500; display: block; margin-bottom: 2px; color: #000; font-size: 13px;">Data <span style="color: red;">*</span></label>
+            <input type="date" formControlName="data" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #000;" />
+          </div>
 
-          <ion-row style="padding: 0; margin: 0 -5px;">
-            <ion-col size="12" size-md="6" style="padding: 0 5px;">
-              <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Disciplina <span style="color: red;">*</span></label>
-              <select formControlName="disciplina" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; outline: none; -webkit-appearance: none; appearance: none;">
-                <option value="" disabled selected hidden>Seleciona...</option>
-                <option *ngFor="let disc of listaDisciplinasUnicas" [value]="disc">{{ disc }}</option>
-              </select>
-            </ion-col>
-            
-            <ion-col size="12" size-md="6" style="padding: 0 5px;">
-              <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000;">Prioridade</label>
-              <select formControlName="prioridade" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #f5f5f5; color: #000; outline: none; -webkit-appearance: none; appearance: none;">
-                <option value="baixa">Baixa</option>
-                <option value="media">Média</option>
-                <option value="alta">Alta</option>
-              </select>
-            </ion-col>
-          </ion-row>
+          <div style="width: 100%;">
+            <label style="font-weight: 500; display: block; margin-bottom: 2px; color: #000; font-size: 13px;">Hora <span style="color: red;">*</span></label>
+            <input type="time" formControlName="hora" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #000;" />
+          </div>
 
-          <div style="background: #f5f5f5; border: 1px solid #ccc; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <div style="width: 100%;">
+            <label style="font-weight: 500; display: block; margin-bottom: 2px; color: #000; font-size: 13px;">Disciplina <span style="color: red;">*</span></label>
+            <select formControlName="disciplina" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #000; outline: none; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23333\' stroke-width=\'2\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 14px;">
+              <option value="" disabled selected hidden>Seleciona...</option>
+              <option *ngFor="let disc of listaDisciplinasUnicas" [value]="disc">{{ disc }}</option>
+            </select>
+          </div>
+          
+          <div style="width: 100%;">
+            <label style="font-weight: 500; display: block; margin-bottom: 2px; color: #000; font-size: 13px;">Prioridade</label>
+            <select formControlName="prioridade" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #000; outline: none; -webkit-appearance: none; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23333\' stroke-width=\'2\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 14px;">
+              <option value="baixa">Baixa</option>
+              <option value="media">Média</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+
+          <div style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; margin-top: 2px; width: 100%; box-sizing: border-box;">
             <div>
-              <strong style="display: block; font-size: 16px; color: #000;">Ativar a Notificação</strong>
-              <small style="color: #8c8c8c;">Receber alertas 3 dias antes e 1 dia antes</small>
+              <strong style="display: block; font-size: 14px; color: #000;">Ativar Notificação</strong>
+              <small style="color: #666; font-size: 11px;">Alertas 3 dias e 1 dia antes</small>
             </div>
-            <ion-toggle color="amarelo-academico" formControlName="notificacao"></ion-toggle>
+            <ion-toggle style="--background-checked: var(--ion-color-amarelo-academico);" formControlName="notificacao"></ion-toggle>
           </div>
 
-          <div style="display: flex; gap: 15px; margin-top: 25px;">
-            <button type="button" (click)="modal.dismiss()" style="flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #ccc; background: #ffffff; color: #000; font-weight: bold; font-size: 16px; cursor: pointer;">
+          <div style="display: flex; gap: 10px; margin-top: 5px; margin-bottom: 5px; width: 100%;">
+            <button type="button" (click)="modalPrazo.dismiss()" style="flex: 1; box-sizing: border-box; padding: 12px; border-radius: 8px; border: 1px solid #e0e0e0; background: #ffffff; color: #000; font-weight: bold; font-size: 15px; cursor: pointer;">
               Cancelar
             </button>
             
-            <!-- Magia do Reactive Forms: o botão só fica clicável se o formulário for válido -->
-            <button type="button" (click)="guardarNovoPrazo(modal)" [disabled]="prazoForm.invalid" [style.opacity]="prazoForm.invalid ? '0.5' : '1'" style="flex: 1; padding: 14px; border-radius: 10px; border: none; background: var(--ion-color-amarelo-academico); color: #000; font-weight: bold; font-size: 16px; cursor: pointer; transition: opacity 0.3s;">
-              Guardar Prazo
+            <button type="button" (click)="guardarNovoPrazo(modalPrazo)" [disabled]="prazoForm.invalid" [style.opacity]="prazoForm.invalid ? '0.5' : '1'" style="flex: 1; box-sizing: border-box; padding: 12px; border-radius: 8px; border: none; background: var(--ion-color-amarelo-academico); color: #000; font-weight: bold; font-size: 15px; cursor: pointer; transition: opacity 0.3s;">
+              Guardar
             </button>
           </div>
 
         </form>
+
       </ion-content>
     </ng-template>
   </ion-modal>
