@@ -1,19 +1,119 @@
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
-:root {
-  /** primary - AMARELO **/
-  --ion-color-primary: #FFD700;
-  --ion-color-primary-rgb: 255, 215, 0;
-  --ion-color-primary-contrast: #000000; /* Texto preto para ler bem no amarelo */
-  --ion-color-primary-contrast-rgb: 0, 0, 0;
-  --ion-color-primary-shade: #E6C200;
-  --ion-color-primary-tint: #FFDB1A;
 
-  /** secondary - AZUL **/
-  --ion-color-secondary: #0052CC;
-  --ion-color-secondary-rgb: 0, 82, 204;
-  --ion-color-secondary-contrast: #ffffff; /* Texto branco para ler bem no azul */
-  --ion-color-secondary-contrast-rgb: 255, 255, 255;
-  --ion-color-secondary-shade: #0048B3;
-  --ion-color-secondary-tint: #1A63D1;
+:root {
+  /** primary **/
+  --ion-color-primary: #3880ff;
+  --ion-color-primary-rgb: 56, 128, 255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #3171e0;
+  --ion-color-primary-tint: #4c8dff;
+
+  /** secondary **/
+  --ion-color-secondary: #3dc2ff;
+  --ion-color-secondary-rgb: 61, 194, 255;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-shade: #36abe0;
+  --ion-color-secondary-tint: #50c8ff;
+
+  /** tertiary **/
+  --ion-color-tertiary: #5260ff;
+  --ion-color-tertiary-rgb: 82, 96, 255;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-shade: #4854e0;
+  --ion-color-tertiary-tint: #6370ff;
+
+  /** success **/
+  --ion-color-success: #2dd36f;
+  --ion-color-success-rgb: 45, 211, 111;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-shade: #28ba62;
+  --ion-color-success-tint: #42d77d;
+
+  /** warning **/
+  --ion-color-warning: #ffc409;
+  --ion-color-warning-rgb: 255, 196, 9;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-shade: #e0ac08;
+  --ion-color-warning-tint: #ffca22;
+
+  /** danger **/
+  --ion-color-danger: #eb445a;
+  --ion-color-danger-rgb: 235, 68, 90;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-shade: #cf3c4f;
+  --ion-color-danger-tint: #ed576b;
+
+  /** dark **/
+  --ion-color-dark: #222428;
+  --ion-color-dark-rgb: 34, 36, 40;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-shade: #1e2023;
+  --ion-color-dark-tint: #383a3e;
+
+  /** medium **/
+  --ion-color-medium: #92949c;
+  --ion-color-medium-rgb: 146, 148, 156;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-shade: #808289;
+  --ion-color-medium-tint: #9d9fa6;
+
+  /** light **/
+  --ion-color-light: #f4f5f8;
+  --ion-color-light-rgb: 244, 245, 248;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-shade: #d7d8da;
+  --ion-color-light-tint: #f5f6f9;
+
+  /* ==============================================
+     AS NOSSAS CORES GLOBAIS (Paleta Quente / Análoga)
+     ============================================== */
+  
+  /* 1. Amarelo Académico (A cor base da tua marca) */
+  --ion-color-amarelo-academico: #f4c20d;
+  --ion-color-amarelo-academico-rgb: 244,194,13;
+  --ion-color-amarelo-academico-contrast: #000000;
+  --ion-color-amarelo-academico-shade: #d7ab0b;
+  --ion-color-amarelo-academico-tint: #f5c825;
+
+  /* 2. Laranja Terracota (Para destaques e botões ativos) */
+  --ion-color-laranja-destaque: #e65100;
+  --ion-color-laranja-destaque-rgb: 230,81,0;
+  --ion-color-laranja-destaque-contrast: #ffffff;
+  --ion-color-laranja-destaque-shade: #cb4700;
+  --ion-color-laranja-destaque-tint: #e9621a;
+
+  /* 3. Vermelho Alerta (Para tarefas atrasadas ou urgentes) */
+  --ion-color-vermelho-alerta: #d32f2f;
+  --ion-color-vermelho-alerta-rgb: 211,47,47;
+  --ion-color-vermelho-alerta-contrast: #ffffff;
+  --ion-color-vermelho-alerta-shade: #ba2929;
+  --ion-color-vermelho-alerta-tint: #d74444;
+}
+
+/* ==============================================
+   CLASSES UTILITÁRIAS PARA AS NOVAS CORES GLOBAIS
+   ============================================== */
+.ion-color-amarelo-academico {
+  --ion-color-base: var(--ion-color-amarelo-academico);
+  --ion-color-base-rgb: var(--ion-color-amarelo-academico-rgb);
+  --ion-color-contrast: var(--ion-color-amarelo-academico-contrast);
+  --ion-color-shade: var(--ion-color-amarelo-academico-shade);
+  --ion-color-tint: var(--ion-color-amarelo-academico-tint);
+}
+
+.ion-color-laranja-destaque {
+  --ion-color-base: var(--ion-color-laranja-destaque);
+  --ion-color-base-rgb: var(--ion-color-laranja-destaque-rgb);
+  --ion-color-contrast: var(--ion-color-laranja-destaque-contrast);
+  --ion-color-shade: var(--ion-color-laranja-destaque-shade);
+  --ion-color-tint: var(--ion-color-laranja-destaque-tint);
+}
+
+.ion-color-vermelho-alerta {
+  --ion-color-base: var(--ion-color-vermelho-alerta);
+  --ion-color-base-rgb: var(--ion-color-vermelho-alerta-rgb);
+  --ion-color-contrast: var(--ion-color-vermelho-alerta-contrast);
+  --ion-color-shade: var(--ion-color-vermelho-alerta-shade);
+  --ion-color-tint: var(--ion-color-vermelho-alerta-tint);
 }
