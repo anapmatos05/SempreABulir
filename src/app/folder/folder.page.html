@@ -139,7 +139,6 @@
               <ion-item button (click)="disciplinaFiltro = 'todas'">
                 <ion-label style="font-size: 14px; font-weight: 600;">Todas as disciplinas</ion-label>
               </ion-item>
-              
               <ion-item button *ngFor="let disc of listaDisciplinasUnicas" (click)="disciplinaFiltro = disc">
                 <ion-label style="font-size: 14px; color: #333;">{{ disc }}</ion-label>
               </ion-item>
@@ -149,30 +148,32 @@
       </ion-popover>
     </div>
 
-    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px;">
+    <!-- ABAS PRINCIPAIS (Todas, Pendentes, Concluídas) -->
+    <div style="display: flex; justify-content: space-between; gap: 6px; margin-bottom: 15px; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px; width: 100%;">
       <div 
-        *ngFor="let aba of ['Todas', 'Pendentes', 'Em Progresso', 'Concluídas']"
+        *ngFor="let aba of ['Todas', 'Pendentes', 'Concluídas']"
         (click)="abaAtiva = aba"
         [style.background]="abaAtiva === aba ? 'var(--ion-color-amarelo-academico)' : '#f0f2f5'"
         [style.color]="abaAtiva === aba ? '#000000' : '#666666'"
-        style="padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center;"
+        style="flex: 1; padding: 8px 0; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; text-align: center;"
       >
         <ion-icon 
-          [name]="aba === 'Todas' ? 'layers-outline' : (aba === 'Pendentes' ? 'time-outline' : (aba === 'Em Progresso' ? 'reload-outline' : 'checkmark-done-outline'))" 
-          style="margin-right: 6px; font-size: 16px;"
+          [name]="aba === 'Todas' ? 'layers-outline' : (aba === 'Pendentes' ? 'time-outline' : 'checkmark-done-outline')" 
+          style="margin-right: 4px; font-size: 14px;"
         ></ion-icon>
         
-        {{ aba }} 
-        <span [style.opacity]="abaAtiva === aba ? '0.8' : '0.5'" style="font-size: 11px; margin-left: 4px;">
-          ({{ aba === 'Todas' ? (contarPorEstado('Pendente') + contarPorEstado('Em Progresso') + contarPorEstado('Concluída')) : contarPorEstado(aba === 'Pendentes' ? 'Pendente' : aba) }})
+        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          {{ aba }} 
+          <span [style.opacity]="abaAtiva === aba ? '0.8' : '0.5'" style="font-size: 10px; margin-left: 2px;">
+            ({{ aba === 'Todas' ? (contarPorEstado('Pendente') + contarPorEstado('Concluída')) : contarPorEstado(aba === 'Pendentes' ? 'Pendente' : (aba === 'Concluídas' ? 'Concluída' : aba)) }})
+          </span>
         </span>
       </div>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 20px;">
 
-      <ng-container *ngFor="let estado of ['Pendente', 'Em Progresso', 'Concluída']">
-        
+      <ng-container *ngFor="let estado of ['Pendente', 'Concluída']">
         <div *ngIf="obterTarefasFiltradasPorEstado(estado).length > 0">
           
           <h2 style="font-size: 18px; font-weight: bold; color: #000; margin: 0 0 12px 0;">
@@ -205,11 +206,11 @@
                 </div>
 
                 <div 
-                  [style.color]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? 'var(--ion-color-vermelho-alerta)' : '#333'"
-                  [style.background]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? '#ffebee' : '#f5f5f5'"
+                  [style.color]="tarefa.estado === 'Concluída' ? '#166534' : (obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? 'var(--ion-color-vermelho-alerta)' : '#333')"
+                  [style.background]="tarefa.estado === 'Concluída' ? '#dcfce7' : (obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? '#ffebee' : '#f5f5f5')"
                   style="padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; white-space: nowrap; flex-shrink: 0;"
                 >
-                  {{ obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? 'Atrasada' : obterDiasRestantesTexto(tarefa.data) }}
+                  {{ tarefa.estado === 'Concluída' ? 'Concluída' : (obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? 'Atrasada' : obterDiasRestantesTexto(tarefa.data)) }}
                 </div>
               </div>
 
@@ -240,7 +241,6 @@
                     <ion-content>
                       <ion-list lines="none">
                         <ion-item button (click)="alterarEstadoTarefa(tarefa, 'Pendente')">Mover para Pendente</ion-item>
-                        <ion-item button (click)="alterarEstadoTarefa(tarefa, 'Em Progresso')">Mover para Em Progresso</ion-item>
                         <ion-item button (click)="alterarEstadoTarefa(tarefa, 'Concluída')">Mover para Concluída</ion-item>
                       </ion-list>
                     </ion-content>

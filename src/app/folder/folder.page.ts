@@ -162,7 +162,6 @@ export class FolderPage implements OnInit {
       let correspondeAba = true;
       if (this.abaAtiva !== 'Todas') {
         correspondeAba = (this.abaAtiva === 'Pendentes' && tarefa.estado === 'Pendente') ||
-                         (this.abaAtiva === 'Em Progresso' && tarefa.estado === 'Em Progresso') ||
                          (this.abaAtiva === 'Concluídas' && tarefa.estado === 'Concluída');
       }
       return correspondePesquisa && correspondeDisciplina && correspondeAba;
@@ -247,9 +246,9 @@ export class FolderPage implements OnInit {
     modal.dismiss();
   }
 
-  alterarEstadoTarefa(tarefa: NovoPrazo, novoEstado: 'Pendente' | 'Em Progresso' | 'Concluída') {
+  alterarEstadoTarefa(tarefa: NovoPrazo, novoEstado: 'Pendente' | 'Concluída') {
     tarefa.estado = novoEstado;
-    this.dataService.atualizarEstadoTarefas(); // Delega para o Service gravar a alteração
+    this.dataService.atualizarEstadoTarefas(); 
     if (this.folder === 'calendario') this.gerarSemanaAtual();
   }
 
