@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DataService, NovoPrazo, DiaSemana } from '../services/data'; // Ajusta o caminho se necessário
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-folder',
@@ -29,7 +30,8 @@ export class FolderPage implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private dataService: DataService,
-    private fb: FormBuilder // <-- ADICIONA ISTO AQUI
+    private fb: FormBuilder,
+    private navCtrl: NavController
   ) {
     // Inicializa o Formulário Reativo
     this.prazoForm = this.fb.group({
@@ -204,6 +206,11 @@ export class FolderPage implements OnInit {
     tarefa.estado = novoEstado;
     this.dataService.atualizarEstadoTarefas(); // Delega para o Service gravar a alteração
     if (this.folder === 'calendario') this.gerarSemanaAtual();
+  }
+
+  abrirGrupo(nomeDoGrupo: string) {
+    // Navega para os detalhes do grupo sem animação de deslize
+    this.navCtrl.navigateForward(['/detalhe-grupo', nomeDoGrupo], { animated: false });
   }
 
   private isMesmoDia(data1: Date, data2: Date): boolean {

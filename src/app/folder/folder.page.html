@@ -270,8 +270,10 @@
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 15px;">
-      <div *ngFor="let grupo of listaGrupos" style="background: #ffffff; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); padding: 20px; position: relative;">
-        
+      <div *ngFor="let grupo of listaGrupos" 
+        (click)="abrirGrupo(grupo.nome)" 
+        style="background: #ffffff; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); padding: 20px; position: relative; cursor: pointer;">
+          
         <ion-icon name="close" (click)="apagarGrupo(grupo)" style="position: absolute; top: 20px; right: 20px; font-size: 20px; color: #b0b0b0; cursor: pointer;"></ion-icon>
 
         <h2 style="font-size: 20px; font-weight: bold; color: #000; margin: 0 0 5px 0; padding-right: 25px;">{{ grupo.nome }}</h2>
