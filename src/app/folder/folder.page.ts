@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { DataService, NovoPrazo, DiaSemana } from '../services/data'; // Ajusta o caminho se necessário
+import { DataService, NovoPrazo } from '../services/data'; // Ajusta o caminho se necessário
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NavController } from '@ionic/angular';
-
+import { Router } from '@angular/router';
+import { Storage } from '@ionic/storage-angular';
 
 @Component({
   selector: 'app-folder',
@@ -59,7 +60,9 @@ export class FolderPage implements OnInit {
     private activatedRoute: ActivatedRoute,
     private dataService: DataService,
     private fb: FormBuilder,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private router: Router,
+    private storage: Storage
   ) {
     // Inicializa o Formulário Reativo
     this.prazoForm = this.fb.group({
@@ -121,6 +124,8 @@ export class FolderPage implements OnInit {
     };
 
     this.dataService.adicionarGrupo(grupoParaGravar); 
+
+    this.salvarDados(); // Salva as mudanças no Storage
     
     // Limpa o formulário e repõe a "Ana Matos" por defeito para o próximo grupo!
     this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
@@ -129,6 +134,7 @@ export class FolderPage implements OnInit {
 
   apagarGrupo(grupoParaApagar: any) {
     this.dataService.removerGrupo(grupoParaApagar); // Delega para o Service
+    this.salvarDados(); // Salva as mudanças no Storage
   }
 
   obterIniciais(nome: string): string {
@@ -152,8 +158,9 @@ export class FolderPage implements OnInit {
     return this.listaDePrazos.filter(p => !this.prazoJaExpirou(p.data, p.hora) && p.estado !== 'Concluída').length;
   }
 
+  // Esta "ponte" vai buscar as disciplinas atualizadas diretamente ao Serviço
   get listaDisciplinasUnicas(): string[] {
-    return this.dataService.listaDisciplinasJSON;
+    return this.dataService.listaDisciplinasJSON || [];
   }
 
   get tarefasFiltradas(): NovoPrazo[] {
@@ -238,7 +245,9 @@ export class FolderPage implements OnInit {
     };
 
     // Agora sim, enviamos para o teu Service!
-    this.dataService.adicionarTarefa(novaTarefa); 
+    this.dataService.adicionarTarefa(novaTarefa);
+    
+    this.salvarDados();
 
     // Limpa o formulário e fecha
     this.prazoForm.reset({ prioridade: 'media', notificacao: false });
@@ -251,7 +260,8 @@ export class FolderPage implements OnInit {
 
   alterarEstadoTarefa(tarefa: NovoPrazo, novoEstado: 'Pendente' | 'Concluída') {
     tarefa.estado = novoEstado;
-    this.dataService.atualizarEstadoTarefas(); 
+    this.dataService.atualizarEstadoTarefas();
+    this.salvarDados(); 
     if (this.folder === 'calendario') this.gerarSemanaAtual();
   }
 
@@ -261,8 +271,14 @@ export class FolderPage implements OnInit {
   }
 
   abrirGrupo(nomeDoGrupo: string) {
-    // Navega para os detalhes do grupo sem animação de deslize
-    this.navCtrl.navigateForward(['/detalhe-grupo', nomeDoGrupo], { animated: false });
+    // Isto faz a app navegar e envia o nome do grupo no link!
+    this.router.navigate(['/detalhe-grupo', nomeDoGrupo]);
+  }
+
+  // Grava as listas do DataService no disco do dispositivo
+  salvarDados() {
+    this.storage.set('meus_prazos', this.dataService.listaDePrazos);
+    this.storage.set('meus_grupos', this.dataService.listaGrupos);
   }
 
   // Procura a próxima tarefa agendada a partir da data que está selecionada

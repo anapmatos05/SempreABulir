@@ -26,23 +26,34 @@ export interface DiaSemana {
 }
 
 @Injectable({
-  providedIn: 'root' // Isto garante que o serviço funciona perfeitamente com a tua estrutura NgModule
+  providedIn: 'root'
 })
 export class DataService {
   public listaDePrazos: NovoPrazo[] = [];
   public listaGrupos: any[] = [];
-  private isPronto = false; // Garante que a BD carregou antes de mostrar dados
+  private isPronto = false; 
   public listaDisciplinasJSON: string[] = [];
 
+  // A MÁGICA ACONTECE AQUI: Pedimos o "Storage" dentro dos parênteses!
   constructor(private storage: Storage, private http: HttpClient) {
-    this.init();
-    this.carregarDisciplinas(); // Começa a ler o JSON logo ao abrir a app
+    this.carregarDisciplinasDoJSON(); // Carrega o JSON
+    this.init(); // Arranca a Base de Dados (Storage) imediatamente!
   }
 
-  private carregarDisciplinas() {
-    // Lê o ficheiro JSON que criámos na pasta assets
-    this.http.get<{disciplinas: string[]}>('assets/disciplinas.json').subscribe(dados => {
-      this.listaDisciplinasJSON = dados.disciplinas;
+  // A função que vai à pasta assets ler o teu ficheiro
+  // A versão Angular Oficial (que avisa o ecrã para se atualizar!)
+  carregarDisciplinasDoJSON() {
+    // Trocamos <string[]> por <any> para ele aceitar o objeto que vem do ficheiro
+    this.http.get<any>('assets/disciplinas.json').subscribe({
+      next: (dados) => {
+        // Aqui dizemos para ele ir buscar a lista que está DENTRO da propriedade "disciplinas"
+        this.listaDisciplinasJSON = dados.disciplinas; 
+        
+        console.log(' Disciplinas lidas com sucesso:', this.listaDisciplinasJSON);
+      },
+      error: (erro) => {
+        console.error(' Erro a ler o JSON:', erro);
+      }
     });
   }
   

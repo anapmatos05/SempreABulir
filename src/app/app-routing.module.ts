@@ -11,17 +11,11 @@ const routes: Routes = [
     path: 'folder/:id',
     loadChildren: () => import('./folder/folder.module').then( m => m.FolderPageModule)
   },
-  {
-    path: 'detalhe-grupo',
-    loadChildren: () => import('./detalhe-grupo/detalhe-grupo.module').then( m => m.DetalheGrupoPageModule)
-  },
 
-  // Altera a rota que o Ionic gerou para ficar assim (adicionando o /:id):
   {
-    path: 'detalhe-grupo/:id',
+    path: 'detalhe-grupo/:nome',
     loadChildren: () => import('./detalhe-grupo/detalhe-grupo.module').then( m => m.DetalheGrupoPageModule)
   }
-
 ];
 
 @NgModule({

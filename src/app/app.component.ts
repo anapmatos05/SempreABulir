@@ -10,7 +10,7 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 })
 export class AppComponent {
   
-  // A TUA LISTA DE PÁGINAS DO MENU LATERAL (O que faltava!)
+  // 1. ADICIONAMOS A VARIÁVEL AQUI PARA O HTML DEIXAR DE DAR ERRO
   public appPages = [
     { title: 'Calendário', url: '/folder/calendario', icon: 'calendar' },
     { title: 'Tarefas', url: '/folder/tarefas', icon: 'checkbox' },
@@ -18,18 +18,18 @@ export class AppComponent {
   ];
 
   constructor(private platform: Platform) {
-    this.initializeApp();
+    this.iniciarApp();
   }
 
-  async initializeApp() {
+  async iniciarApp() {
     await this.platform.ready();
-
+    
+    // Bloqueia a rotação para ficar sempre em modo "Retrato" (em pé)
     if (this.platform.is('capacitor')) {
       try {
         await ScreenOrientation.lock({ orientation: 'portrait' });
-        console.log('Sucesso: Rotação de ecrã bloqueada na vertical!');
       } catch (error) {
-        console.log('Aviso: O bloqueio de ecrã não está disponível no browser.', error);
+        console.log('A rotação só é bloqueada no telemóvel nativo.');
       }
     }
   }

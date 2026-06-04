@@ -35,9 +35,15 @@ export class DetalheGrupoPage implements OnInit {
   constructor(private route: ActivatedRoute, private navCtrl: NavController) { }
 
   ngOnInit() {
-    const idRecebido = this.route.snapshot.paramMap.get('id');
-    if (idRecebido) {
-      this.nomeDoGrupo = idRecebido;
+    // 1. Lemos o parâmetro "nome" que vem no URL (configurado no Passo 1)
+    const nomeRecebido = this.route.snapshot.paramMap.get('nome');
+    
+    // 2. Se a página recebeu um nome, atualizamos as variáveis para mostrar esse nome!
+    if (nomeRecebido) {
+      this.nomeDoGrupo = nomeRecebido;
+      
+      // Atualiza também o nome do grupo hardcoded para fazer sentido no ecrã
+      this.grupoDetalhado.nome = nomeRecebido; 
     }
   }
 
