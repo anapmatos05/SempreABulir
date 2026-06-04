@@ -34,7 +34,7 @@
     <ion-grid>
       <ion-row>
         <ion-col size="12" size-md="4">
-          <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+          <ion-card button (click)="folder = 'tarefas'; abaAtiva = 'Pendentes'; filtroTempo = '24h'" style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <strong style="color: #333;">Prazos Urgentes</strong>
               <ion-icon name="alert-circle" color="danger" style="font-size: 20px;"></ion-icon>
@@ -45,7 +45,7 @@
         </ion-col>
 
         <ion-col size="12" size-md="4">
-          <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+          <ion-card button (click)="folder = 'tarefas'; abaAtiva = 'Pendentes'; filtroTempo = 'semana'" style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <strong style="color: #333;">Esta Semana</strong>
               <ion-icon name="calendar-outline" style="font-size: 20px; color: #555;"></ion-icon>
@@ -56,12 +56,12 @@
         </ion-col>
 
         <ion-col size="12" size-md="4">
-          <ion-card style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
+          <ion-card button (click)="folder = 'tarefas'; abaAtiva = 'Pendentes'; filtroTempo = 'todas'" style="margin: 5px; padding: 15px; border-radius: 12px; background: #f5f5f5; box-shadow: none;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong style="color: #333;">Em Progresso</strong>
-              <ion-icon name="git-commit-outline" color="danger" style="font-size: 20px;"></ion-icon>
+              <strong style="color: #333;">Pendentes</strong>
+              <ion-icon name="time-outline" color="danger" style="font-size: 20px;"></ion-icon>
             </div>
-            <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">{{ prazosAtivosCount }}</h1>
+            <h1 style="font-size: 42px; font-weight: bold; color: red; margin: 15px 0 5px 0;">{{ contarPorEstado('Pendente') || 0 }}</h1>
             <small style="color: #8c8c8c;">Tarefas ativas</small>
           </ion-card>
         </ion-col>
@@ -85,10 +85,12 @@
                 <span [style.color]="dia.isHoje ? 'var(--ion-color-amarelo-academico)' : '#8c8c8c'" [style.font-weight]="dia.isHoje ? 'bold' : 'normal'" style="display: block; font-size: 12px;">{{ dia.nome }}</span>
                 <strong style="display: block; font-size: 20px; margin: 5px 0 10px 0; color: #000;">{{ dia.numero }}</strong>
                 
-                <div *ngIf="dia.temPrazo; else semPrazos">
-                  <div style="width: 8px; height: 8px; background: red; border-radius: 50%; margin: 0 auto 5px auto;"></div>
+                <div *ngIf="dia.tarefas && dia.tarefas.length > 0; else semPrazos">
+                  <div style="display: flex; justify-content: center; gap: 3px; margin: 0 auto 5px auto; flex-wrap: wrap; padding: 0 5px;">
+                    <div *ngFor="let t of dia.tarefas" style="width: 6px; height: 6px; background: red; border-radius: 50%;"></div>
+                  </div>
                   <small style="color: #333; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; padding: 0 2px;">
-                    {{ dia.prazoTitulo }}
+                    {{ dia.tarefas.length === 1 ? dia.tarefas[0].titulo : dia.tarefas.length + ' Tarefas' }}
                   </small>
                 </div>
                 
@@ -113,9 +115,7 @@
       </div>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-      
-      <div style="width: 100%; background: #f0f2f5; border-radius: 10px; display: flex; align-items: center; padding: 2px 12px;">
+    <div style="width: 100%; background: #f0f2f5; border-radius: 10px; display: flex; align-items: center; padding: 2px 12px; margin-bottom: 10px;">
         <ion-icon name="search-outline" style="color: #666; font-size: 20px; margin-right: 8px;"></ion-icon>
         <input 
           type="text" 
@@ -125,51 +125,85 @@
         />
       </div>
 
-      <div id="meu-botao-filtro" style="width: 100%; background: #f0f2f5; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 15px; cursor: pointer;">
-        <span style="color: #000; font-weight: 600; font-size: 14px;">
-          {{ disciplinaFiltro === 'todas' ? 'Todas as disciplinas' : disciplinaFiltro }}
-        </span>
-        <ion-icon name="chevron-down-outline" style="color: #666; font-size: 18px;"></ion-icon>
-      </div>
-
-      <ion-popover trigger="meu-botao-filtro" side="bottom" alignment="center" dismissOnSelect="true" cssClass="menu-perfeito">
-        <ng-template>
-          <ion-content>
-            <ion-list lines="none">
-              <ion-item button (click)="disciplinaFiltro = 'todas'">
-                <ion-label style="font-size: 14px; font-weight: 600;">Todas as disciplinas</ion-label>
-              </ion-item>
-              <ion-item button *ngFor="let disc of listaDisciplinasUnicas" (click)="disciplinaFiltro = disc">
-                <ion-label style="font-size: 14px; color: #333;">{{ disc }}</ion-label>
-              </ion-item>
-            </ion-list>
-          </ion-content>
-        </ng-template>
-      </ion-popover>
-    </div>
-
-    <!-- ABAS PRINCIPAIS (Todas, Pendentes, Concluídas) -->
-    <div style="display: flex; justify-content: space-between; gap: 6px; margin-bottom: 15px; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px; width: 100%;">
-      <div 
-        *ngFor="let aba of ['Todas', 'Pendentes', 'Concluídas']"
-        (click)="abaAtiva = aba"
-        [style.background]="abaAtiva === aba ? 'var(--ion-color-amarelo-academico)' : '#f0f2f5'"
-        [style.color]="abaAtiva === aba ? '#000000' : '#666666'"
-        style="flex: 1; padding: 8px 0; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; text-align: center;"
-      >
-        <ion-icon 
-          [name]="aba === 'Todas' ? 'layers-outline' : (aba === 'Pendentes' ? 'time-outline' : 'checkmark-done-outline')" 
-          style="margin-right: 4px; font-size: 14px;"
-        ></ion-icon>
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
         
-        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          {{ aba }} 
-          <span [style.opacity]="abaAtiva === aba ? '0.8' : '0.5'" style="font-size: 10px; margin-left: 2px;">
-            ({{ aba === 'Todas' ? (contarPorEstado('Pendente') + contarPorEstado('Concluída')) : contarPorEstado(aba === 'Pendentes' ? 'Pendente' : (aba === 'Concluídas' ? 'Concluída' : aba)) }})
+        <div id="btn-filtro-disc" style="flex: 1; background: #f0f2f5; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 12px; cursor: pointer; min-width: 0;">
+          <span style="color: #000; font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            {{ disciplinaFiltro === 'todas' ? 'Todas as disciplinas' : disciplinaFiltro }}
           </span>
-        </span>
+          <ion-icon name="chevron-down-outline" style="color: #666; font-size: 16px; flex-shrink: 0; margin-left: 5px;"></ion-icon>
+        </div>
+
+        <ion-popover trigger="btn-filtro-disc" side="bottom" alignment="start" dismissOnSelect="true">
+          <ng-template>
+            <ion-content>
+              <ion-list lines="none">
+                <ion-item button (click)="disciplinaFiltro = 'todas'">
+                  <ion-label style="font-size: 14px; font-weight: 600;">Todas as disciplinas</ion-label>
+                </ion-item>
+                <ion-item button *ngFor="let disc of listaDisciplinasUnicas" (click)="disciplinaFiltro = disc">
+                  <ion-label style="font-size: 14px; color: #333;">{{ disc }}</ion-label>
+                </ion-item>
+              </ion-list>
+            </ion-content>
+          </ng-template>
+        </ion-popover>
+
+        <div id="btn-filtro-tempo" style="flex: 1; background: #f0f2f5; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 12px; cursor: pointer; min-width: 0;">
+          <span style="color: #000; font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            {{ filtroTempo === 'todas' ? 'Qualquer Data' : (filtroTempo === '24h' ? 'Próximas 24h' : (filtroTempo === '3dias' ? 'Próximos 3 Dias' : (filtroTempo === 'semana' ? 'Próxima Semana' : 'Próximo Mês'))) }}
+          </span>
+          <ion-icon name="chevron-down-outline" style="color: #666; font-size: 16px; flex-shrink: 0; margin-left: 5px;"></ion-icon>
+        </div>
+
+        <ion-popover trigger="btn-filtro-tempo" side="bottom" alignment="end" dismissOnSelect="true">
+          <ng-template>
+            <ion-content>
+              <ion-list lines="none">
+                <ion-item button (click)="filtroTempo = 'todas'">
+                  <ion-label style="font-size: 14px; font-weight: 600;">Qualquer Data</ion-label>
+                </ion-item>
+                <ion-item button (click)="filtroTempo = '24h'">
+                  <ion-label style="font-size: 14px; color: #333;">Próximas 24h</ion-label>
+                </ion-item>
+                <ion-item button (click)="filtroTempo = '3dias'">
+                  <ion-label style="font-size: 14px; color: #333;">Próximos 3 Dias</ion-label>
+                </ion-item>
+                <ion-item button (click)="filtroTempo = 'semana'">
+                  <ion-label style="font-size: 14px; color: #333;">Próxima Semana</ion-label>
+                </ion-item>
+                <ion-item button (click)="filtroTempo = 'mes'">
+                  <ion-label style="font-size: 14px; color: #333;">Próximo Mês</ion-label>
+                </ion-item>
+              </ion-list>
+            </ion-content>
+          </ng-template>
+        </ion-popover>
+        
       </div>
-    </div>
+
+      <div style="display: flex; justify-content: space-between; gap: 6px; margin-bottom: 15px; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px; width: 100%;">
+        <div 
+          *ngFor="let aba of ['Todas', 'Pendentes', 'Concluídas']"
+          (click)="abaAtiva = aba"
+          [style.background]="abaAtiva === aba ? 'var(--ion-color-amarelo-academico)' : '#f0f2f5'"
+          [style.color]="abaAtiva === aba ? '#000000' : '#666666'"
+          style="flex: 1; padding: 8px 0; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; text-align: center;"
+        >
+          <ion-icon 
+            [name]="aba === 'Todas' ? 'layers-outline' : (aba === 'Pendentes' ? 'time-outline' : 'checkmark-done-outline')" 
+            style="margin-right: 4px; font-size: 14px;"
+          ></ion-icon>
+          <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            {{ aba }} 
+            <span [style.opacity]="abaAtiva === aba ? '0.8' : '0.5'" style="font-size: 10px; margin-left: 2px;">
+              ({{ aba === 'Todas' ? (contarPorEstado('Pendente') + contarPorEstado('Concluída')) : contarPorEstado(aba === 'Pendentes' ? 'Pendente' : (aba === 'Concluídas' ? 'Concluída' : aba)) }})
+            </span>
+          </span>
+        </div>
+      </div>
+
+    
 
     <div style="display: flex; flex-direction: column; gap: 20px;">
 
@@ -182,9 +216,10 @@
 
           <div style="display: flex; flex-direction: column; gap: 12px;">
             <div *ngFor="let tarefa of obterTarefasFiltradasPorEstado(estado)" 
+                 (click)="abrirDetalhesTarefa(tarefa, modalDetalheTarefa)"
                  [style.background]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? '#fff5f5' : '#ffffff'"
                  [style.border]="obterDiasRestantesTexto(tarefa.data) === 'Expirado' && tarefa.estado !== 'Concluída' ? '1px solid #ffcdd2' : '1px solid #f0f0f0'"
-                 style="border-radius: 12px; padding: 16px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                 style="border-radius: 12px; padding: 16px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer;">
               
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                 <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; padding-right: 10px;">
@@ -193,7 +228,7 @@
                     [name]="tarefa.estado === 'Concluída' ? 'checkmark-circle' : 'ellipse-outline'" 
                     [style.color]="tarefa.estado === 'Concluída' ? 'var(--ion-color-amarelo-academico)' : (obterDiasRestantesTexto(tarefa.data) === 'Expirado' ? 'var(--ion-color-vermelho-alerta)' : '#8c8c8c')"
                     style="font-size: 22px; margin-top: 1px; flex-shrink: 0; cursor: pointer;"
-                    (click)="alterarEstadoTarefa(tarefa, tarefa.estado === 'Concluída' ? 'Pendente' : 'Concluída')"
+                    (click)="alterarEstadoTarefa(tarefa, tarefa.estado === 'Concluída' ? 'Pendente' : 'Concluída'); $event.stopPropagation()"
                   ></ion-icon>
                   
                   <span 
@@ -235,7 +270,7 @@
               </div>
 
               <div style="position: absolute; bottom: 12px; right: 12px;">
-                <ion-icon name="ellipsis-horizontal" style="color: #b0b0b0; font-size: 20px; padding: 5px; cursor: pointer;" [id]="'trigger-nova-' + tarefa.titulo.replace(' ', '-')"></ion-icon>
+                <ion-icon name="ellipsis-horizontal" style="color: #b0b0b0; font-size: 20px; padding: 5px; cursor: pointer;" [id]="'trigger-nova-' + tarefa.titulo.replace(' ', '-')" (click)="$event.stopPropagation()"></ion-icon>
                 <ion-popover [trigger]="'trigger-nova-' + tarefa.titulo.replace(' ', '-')" dismiss-on-select="true">
                   <ng-template>
                     <ion-content>
@@ -547,6 +582,78 @@
   </ion-modal>
 
 </ion-content>
+
+<ion-modal #modalDetalheTarefa [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 0.95]" style="--width: 100%;">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar style="--background: #ffffff; padding: 5px 10px 0 10px;">
+        <ion-title style="font-weight: bold; font-size: 20px; color: #000; padding: 0;">Detalhes da Tarefa</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="modalDetalheTarefa.dismiss()" style="color: #8c8c8c;">
+            <ion-icon name="close" style="font-size: 24px;"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding" style="--background: #ffffff;" *ngIf="tarefaSelecionada">
+      <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 5px;">
+
+        <div>
+          <div style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-bottom: 10px;"
+               [style.background]="tarefaSelecionada.estado === 'Concluída' ? '#dcfce7' : '#fff3cd'"
+               [style.color]="tarefaSelecionada.estado === 'Concluída' ? '#166534' : '#854d0e'">
+            {{ tarefaSelecionada.estado }}
+          </div>
+          <h2 style="font-size: 24px; font-weight: bold; color: #000; margin: 0 0 5px 0; line-height: 1.2;">{{ tarefaSelecionada.titulo }}</h2>
+          <div style="display: flex; align-items: center; color: #666; font-size: 14px; margin-top: 5px;">
+            <ion-icon name="book-outline" style="margin-right: 6px;"></ion-icon>
+            {{ tarefaSelecionada.disciplina }}
+          </div>
+        </div>
+
+        <div *ngIf="tarefaSelecionada.descricao" style="background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0;">
+          <p style="margin: 0; color: #444; font-size: 14px; line-height: 1.5;">{{ tarefaSelecionada.descricao }}</p>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1; background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 12px; color: #8c8c8c; font-weight: 600; text-transform: uppercase;">Data de Entrega</span>
+            <div style="display: flex; align-items: center; color: #000; font-size: 15px; font-weight: 500;">
+              <ion-icon name="calendar-outline" style="margin-right: 6px; color: var(--ion-color-amarelo-academico);"></ion-icon>
+              {{ tarefaSelecionada.data | date:'dd MMM yyyy' }}
+            </div>
+          </div>
+          <div style="flex: 1; background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 12px; color: #8c8c8c; font-weight: 600; text-transform: uppercase;">Hora</span>
+            <div style="display: flex; align-items: center; color: #000; font-size: 15px; font-weight: 500;">
+              <ion-icon name="time-outline" style="margin-right: 6px; color: var(--ion-color-amarelo-academico);"></ion-icon>
+              {{ tarefaSelecionada.hora || '23:59' }}
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+           <div style="flex: 1; background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 12px; color: #8c8c8c; font-weight: 600; text-transform: uppercase;">Prioridade</span>
+            <div style="display: flex; align-items: center; color: #000; font-size: 14px; font-weight: 500; text-transform: capitalize;">
+              <ion-icon name="flag-outline" style="margin-right: 6px;"></ion-icon>
+              {{ tarefaSelecionada.prioridade || 'Média' }}
+            </div>
+          </div>
+           <div style="flex: 1; background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 12px; color: #8c8c8c; font-weight: 600; text-transform: uppercase;">Notificações</span>
+            <div style="display: flex; align-items: center; color: #000; font-size: 14px; font-weight: 500;">
+              <ion-icon [name]="tarefaSelecionada.notificacao ? 'notifications-outline' : 'notifications-off-outline'" style="margin-right: 6px;"></ion-icon>
+              {{ tarefaSelecionada.notificacao ? 'Ativas' : 'Desativadas' }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
 
 <ion-footer class="ion-hide-md-up">
   <ion-tab-bar style="--background: #ffffff; border-top: 1px solid #e0e0e0;">

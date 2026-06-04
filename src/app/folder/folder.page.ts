@@ -13,9 +13,9 @@ import { NavController } from '@ionic/angular';
 })
 export class FolderPage implements OnInit {
   public folder!: string;
-  public diasDaSemana: DiaSemana[] = [];
   // 1. Variável para guardar o dia em que o utilizador clicou (começa no dia de hoje)
   public dataSelecionadaCalendario: string = new Date().toISOString();
+  public tarefaSelecionada: any = null;
 
   // 2. Filtra as tarefas para mostrar apenas as do dia selecionado
   get tarefasDoDiaSelecionado(): any[] {
@@ -44,9 +44,11 @@ export class FolderPage implements OnInit {
   public termoPesquisa: string = '';
   public disciplinaFiltro: string = 'todas';
   public abaAtiva: string = 'Todas';
+  public filtroTempo: string = 'todas';
 
   // Objeto do formulário
   public prazoForm: FormGroup;
+
 
   // Variáveis dos Grupos
   public novoGrupo: any = { nome: '', disciplina: '', membros: ['Ana Matos'] };
@@ -159,12 +161,36 @@ export class FolderPage implements OnInit {
       const correspondePesquisa = tarefa.titulo.toLowerCase().includes(this.termoPesquisa.toLowerCase()) || 
                                   (tarefa.descricao && tarefa.descricao.toLowerCase().includes(this.termoPesquisa.toLowerCase()));
       const correspondeDisciplina = this.disciplinaFiltro === 'todas' || tarefa.disciplina === this.disciplinaFiltro;
+      
       let correspondeAba = true;
       if (this.abaAtiva !== 'Todas') {
         correspondeAba = (this.abaAtiva === 'Pendentes' && tarefa.estado === 'Pendente') ||
                          (this.abaAtiva === 'Concluídas' && tarefa.estado === 'Concluída');
       }
-      return correspondePesquisa && correspondeDisciplina && correspondeAba;
+
+      // NOVO FILTRO DE TEMPO CORRIGIDO (Não apaga as tarefas concluídas!)
+      let correspondeTempo = true;
+      if (this.filtroTempo !== 'todas') {
+        const hoje = new Date();
+        hoje.setHours(0,0,0,0);
+        const dataPrazo = new Date(tarefa.data);
+        dataPrazo.setHours(0,0,0,0);
+        // Calcula a diferença em dias matematicamente
+        const diffDias = Math.ceil((dataPrazo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+
+        // Mostra tarefas que estão dentro do prazo pedido (inclui as que estão em atraso)
+        if (this.filtroTempo === '24h') {
+          correspondeTempo = diffDias <= 1; 
+        } else if (this.filtroTempo === '3dias') {
+          correspondeTempo = diffDias <= 3;
+        } else if (this.filtroTempo === 'semana') {
+          correspondeTempo = diffDias <= 7;
+        } else if (this.filtroTempo === 'mes') {
+          correspondeTempo = diffDias <= 30;
+        }
+      }
+
+      return correspondePesquisa && correspondeDisciplina && correspondeAba && correspondeTempo;
     });
   }
 
@@ -191,29 +217,6 @@ export class FolderPage implements OnInit {
   }
 
   gerarSemanaAtual() {
-    const hoje = new Date();
-    const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    this.diasDaSemana = [];
-
-    for (let i = 0; i < 4; i++) {
-      const dataDia = new Date(hoje);
-      dataDia.setDate(hoje.getDate() + i);
-
-      const prazoDoDia = this.listaDePrazos.find(prazo => {
-        const dataPrazo = new Date(prazo.data);
-        return this.isMesmoDia(dataPrazo, dataDia) && !this.prazoJaExpirou(prazo.data, prazo.hora) && prazo.estado !== 'Concluída';
-      });
-
-      this.diasDaSemana.push({
-        nome: i === 0 ? 'Hoje' : (i === 1 ? 'Amanhã' : nomesDias[dataDia.getDay()]),
-        numero: dataDia.getDate(),
-        isHoje: i === 0, // <-- O 'H' tem de ser maiúsculo!
-        dataCompleta: dataDia,
-        temPrazo: !!prazoDoDia,
-        prazoTitulo: prazoDoDia ? prazoDoDia.titulo : undefined,
-        prazoHora: prazoDoDia ? prazoDoDia.hora : undefined
-      });
-    }
   }
 
   guardarNovoPrazo(modal: any) {
@@ -252,6 +255,11 @@ export class FolderPage implements OnInit {
     if (this.folder === 'calendario') this.gerarSemanaAtual();
   }
 
+  abrirDetalhesTarefa(tarefa: any, modal: any) {
+    this.tarefaSelecionada = tarefa;
+    modal.present();
+  }
+
   abrirGrupo(nomeDoGrupo: string) {
     // Navega para os detalhes do grupo sem animação de deslize
     this.navCtrl.navigateForward(['/detalhe-grupo', nomeDoGrupo], { animated: false });
@@ -271,6 +279,44 @@ export class FolderPage implements OnInit {
     
     // Devolvemos apenas a primeira tarefa (a mais próxima) num array para o HTML ler facilmente
     return futuras.length > 0 ? [futuras[0]] : [];
+  }
+
+  get diasDaSemana(): any[] {
+    const hoje = new Date();
+    const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const dias = [];
+
+    for (let i = 0; i < 4; i++) {
+      // Fazemos uma cópia do dia de hoje para não estragar a data original
+      const dataDia = new Date(hoje.getTime());
+      dataDia.setDate(hoje.getDate() + i);
+
+      // Vamos à lista procurar as tarefas que combinam com este dia
+      const prazosDoDia = this.listaDePrazos.filter(prazo => {
+        if (!prazo.data) return false;
+        
+        // Separa a string "2026-06-05" em Ano=2026, Mês=6, Dia=5 (Isto torna as datas 100% à prova de erros e fusos horários!)
+        const partes = prazo.data.split('T')[0].split('-'); 
+        const ano = parseInt(partes[0], 10);
+        const mes = parseInt(partes[1], 10) - 1; // O JavaScript conta os meses de 0 a 11
+        const dia = parseInt(partes[2], 10);
+
+        return ano === dataDia.getFullYear() &&
+               mes === dataDia.getMonth() &&
+               dia === dataDia.getDate() &&
+               prazo.estado !== 'Concluída';
+      });
+
+      dias.push({
+        nome: i === 0 ? 'Hoje' : (i === 1 ? 'Amanhã' : nomesDias[dataDia.getDay()]),
+        numero: dataDia.getDate(),
+        isHoje: i === 0,
+        dataCompleta: dataDia,
+        temPrazo: prazosDoDia.length > 0,
+        tarefas: prazosDoDia
+      });
+    }
+    return dias;
   }
 
   private isMesmoDia(data1: Date, data2: Date): boolean {

@@ -48,3 +48,22 @@ ion-modal {
 .cabecalho-mobile {
   display: none; /* Escondido no Computador */
 }
+
+/* ========================================================
+   ESTILOS DO RODAPÉ (TABS)
+   Removemos o azul padrão e forçamos o amarelo académico
+======================================================== */
+
+ion-tab-bar {
+  /* Engana o Ionic dizendo que a cor principal deste rodapé é o nosso amarelo */
+  --ion-color-primary: var(--ion-color-amarelo-academico, #f4c20d);
+}
+
+ion-tab-button {
+  /* Altera a animação da "onda" ao clicar */
+  --ripple-color: var(--ion-color-amarelo-academico, #f4c20d);
+  
+  /* Cria aquele fundo amarelo muito suave e arredondado ao selecionar */
+  --background-focused: rgba(244, 194, 13, 0.15);
+  --background-hover: rgba(244, 194, 13, 0.10);
+}

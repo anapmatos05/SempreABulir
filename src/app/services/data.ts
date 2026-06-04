@@ -22,6 +22,7 @@ export interface DiaSemana {
   temPrazo: boolean;
   prazoTitulo?: string;
   prazoHora?: string;
+  tarefas?: any[];
 }
 
 @Injectable({
