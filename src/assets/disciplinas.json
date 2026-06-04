@@ -1,12 +1,9 @@
 {
   "disciplinas": [
     "IHM (Interação Homem-Máquina)",
-    "Programação Móvel",
     "Bases de Dados",
     "Engenharia de Software",
     "Sistemas Operativos",
-    "Redes de Computadores",
-    "Inteligência Artificial",
-    "Matemática Computacional"
+    "Redes de Computadores"
   ]
 }

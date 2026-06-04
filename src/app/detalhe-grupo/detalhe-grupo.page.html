@@ -154,7 +154,6 @@
     </ng-template>
   </ion-modal>
 
-  <!-- MODAL DE EDIÇÃO DO GRUPO -->
   <ion-modal #modalEdicao [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85]">
     <ng-template>
       <ion-header class="ion-no-border">
@@ -184,7 +183,6 @@
           <div>
             <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000; font-size: 14px;">Adicionar Membro</label>
             <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-              <!-- Input do Nome apenas -->
               <input type="text" [(ngModel)]="novoMembroNome" placeholder="Nome completo" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #000;" />
               <ion-button expand="block" (click)="adicionarMembroEdicao()" style="--background: var(--ion-color-amarelo-academico); --color: #000; --border-radius: 10px; margin: 0; font-weight: bold;">
                 ADICIONAR

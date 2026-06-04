@@ -9,10 +9,11 @@ import { NavController } from '@ionic/angular';
   standalone: false
 })
 export class DetalheGrupoPage implements OnInit {
-
+  // Variáveis de estado e controlo da interface
   public nomeDoGrupo: string = '';
   public abaAtiva: string = 'subtarefas';
   
+  // Estrutura de dados de demonstração (Mock Data) do grupo atual
   public grupoDetalhado = {
     nome: 'Grupo INTHOM - Projeto Final',
     disciplina: 'IHM (Interação Homem-Máquina)',
@@ -27,19 +28,28 @@ export class DetalheGrupoPage implements OnInit {
     ]
   };
 
+  // Variáveis de suporte para os formulários e modais
   public novoMembroNome: string = '';
   public grupoEmEdicao: any = {};
-  
   public novaSubtarefa = { titulo: '', responsavel: '', data: '' };
 
-  constructor(private route: ActivatedRoute, private navCtrl: NavController) { }
+  constructor(
+    private route: ActivatedRoute, 
+    private navCtrl: NavController
+  ) { }
 
   ngOnInit() {
-    const idRecebido = this.route.snapshot.paramMap.get('id');
-    if (idRecebido) {
-      this.nomeDoGrupo = idRecebido;
+    // Captura o parâmetro passado na rota (URL) e atualiza o contexto da página
+    const nomeRecebido = this.route.snapshot.paramMap.get('nome');
+    if (nomeRecebido) {
+      this.nomeDoGrupo = nomeRecebido;
+      this.grupoDetalhado.nome = nomeRecebido; 
     }
   }
+
+  // ==========================================
+  // NAVEGAÇÃO E UTILITÁRIOS
+  // ==========================================
 
   voltarParaGrupos() {
     this.navCtrl.navigateBack('/folder/grupos', { animated: false });
@@ -49,7 +59,13 @@ export class DetalheGrupoPage implements OnInit {
     return nome.substring(0, 1).toUpperCase();
   }
 
+  // ==========================================
+  // GESTÃO E EDIÇÃO DO GRUPO
+  // ==========================================
+
   abrirEdicao(modal: any) {
+    // Cria uma cópia profunda (Deep Copy) para garantir que as edições não alteram 
+    // os dados originais caso o utilizador cancele a operação
     this.grupoEmEdicao = JSON.parse(JSON.stringify(this.grupoDetalhado));
     modal.present();
   }
@@ -57,12 +73,12 @@ export class DetalheGrupoPage implements OnInit {
   adicionarMembroEdicao() {
     const nomeLimpo = this.novoMembroNome.trim();
     if (nomeLimpo.length > 0) {
-      // Gera o e-mail automaticamente (remove acentos, põe minúsculas e troca espaços por pontos)
+      // Geração automática do e-mail institucional baseado no nome inserido
       const emailGerado = nomeLimpo
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, '.') + '@estg.ipvc.pt';
+        .replace(/[\u0300-\u036f]/g, "") // Remove acentuação
+        .replace(/\s+/g, '.') + '@estg.ipvc.pt'; // Substitui espaços por pontos
 
       this.grupoEmEdicao.membros.push({
         nome: nomeLimpo,
@@ -77,11 +93,15 @@ export class DetalheGrupoPage implements OnInit {
   }
 
   guardarEdicao(modal: any) {
+    // Substitui os dados originais pelos dados editados (nova Deep Copy)
     this.grupoDetalhado = JSON.parse(JSON.stringify(this.grupoEmEdicao));
     modal.dismiss();
   }
 
-  /* --- LÓGICA DA NOVA SUBTAREFA --- */
+  // ==========================================
+  // GESTÃO DE SUBTAREFAS E PROGRESSO
+  // ==========================================
+
   abrirNovaSubtarefa(modal: any) {
     this.novaSubtarefa = { titulo: '', responsavel: '', data: '' };
     modal.present();
@@ -95,6 +115,7 @@ export class DetalheGrupoPage implements OnInit {
         data: this.novaSubtarefa.data || new Date().toISOString().split('T')[0],
         concluida: false
       });
+      
       this.atualizarProgresso();
       modal.dismiss();
     }
@@ -110,6 +131,8 @@ export class DetalheGrupoPage implements OnInit {
       this.grupoDetalhado.progresso = 0;
       return;
     }
+    
+    // Calcula a percentagem de conclusão baseada no rácio de subtarefas finalizadas
     const concluidas = this.grupoDetalhado.subtarefas.filter(t => t.concluida).length;
     this.grupoDetalhado.progresso = Math.round((concluidas / this.grupoDetalhado.subtarefas.length) * 100);
   }

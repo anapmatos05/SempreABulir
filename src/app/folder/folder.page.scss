@@ -1,7 +1,12 @@
+/* ========================================================
+   ESTILOS GERAIS DO COMPONENTE
+======================================================== */
+
 ion-menu-button {
   color: var(--ion-color-primary);
 }
 
+/* Container de aviso centralizado (usado em estados vazios ou erros) */
 #container {
   text-align: center;
   position: absolute;
@@ -9,24 +14,25 @@ ion-menu-button {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+
+  strong {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  p {
+    font-size: 16px;
+    line-height: 22px;
+    color: #8c8c8c;
+    margin: 0;
+  }
+
+  a {
+    text-decoration: none;
+  }
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-  color: #8c8c8c;
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
-}
-
+/* Estilização específica para as janelas modais da aplicação */
 ion-modal {
   --width: 550px;
   --height: 680px;
@@ -34,9 +40,10 @@ ion-modal {
   --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
 }
 
-/* =========================================
-   ESTRUTURA DO CABEÇALHO (BASE - COMPUTADOR)
-   ========================================= */
+/* ========================================================
+   ESTRUTURA RESPONSIVA DO CABEÇALHO
+======================================================== */
+
 .cabecalho-desktop {
   display: flex;
   width: 100%;
@@ -46,5 +53,24 @@ ion-modal {
 }
 
 .cabecalho-mobile {
-  display: none; /* Escondido no Computador */
+  display: none; /* Oculto por defeito em ecrãs de computador */
+}
+
+/* ========================================================
+   ESTILOS DO RODAPÉ (TABS)
+   Personalização da barra de navegação inferior
+======================================================== */
+
+ion-tab-bar {
+  /* Substitui a cor primária global pela variável do tema Amarelo Académico */
+  --ion-color-primary: var(--ion-color-amarelo-academico, #f4c20d);
+}
+
+ion-tab-button {
+  /* Efeito de clique (ripple) personalizado */
+  --ripple-color: var(--ion-color-amarelo-academico, #f4c20d);
+  
+  /* Estados de interação para feedback visual suave */
+  --background-focused: rgba(244, 194, 13, 0.15);
+  --background-hover: rgba(244, 194, 13, 0.10);
 }

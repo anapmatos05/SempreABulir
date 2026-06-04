@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
 import { HttpClient } from '@angular/common/http';
 
-// As tuas interfaces passam a viver aqui para poderem ser usadas em toda a app
+// Interfaces de dados partilhadas por toda a aplicação
 export interface NovoPrazo {
   titulo: string;
   descricao: string;
@@ -18,33 +18,43 @@ export interface DiaSemana {
   nome: string;
   numero: number;
   isHoje: boolean;
-  dataCompleta: Date;
+  dataCompleta?: Date;
   temPrazo: boolean;
   prazoTitulo?: string;
   prazoHora?: string;
+  tarefas?: any[];
 }
 
 @Injectable({
-  providedIn: 'root' // Isto garante que o serviço funciona perfeitamente com a tua estrutura NgModule
+  providedIn: 'root'
 })
 export class DataService {
   public listaDePrazos: NovoPrazo[] = [];
   public listaGrupos: any[] = [];
-  private isPronto = false; // Garante que a BD carregou antes de mostrar dados
+  private isPronto = false; 
   public listaDisciplinasJSON: string[] = [];
 
+  // Injeção de dependências do Storage e HttpClient
   constructor(private storage: Storage, private http: HttpClient) {
-    this.init();
-    this.carregarDisciplinas(); // Começa a ler o JSON logo ao abrir a app
+    this.carregarDisciplinasDoJSON();
+    this.init(); 
   }
 
-  private carregarDisciplinas() {
-    // Lê o ficheiro JSON que criámos na pasta assets
-    this.http.get<{disciplinas: string[]}>('assets/disciplinas.json').subscribe(dados => {
-      this.listaDisciplinasJSON = dados.disciplinas;
+  // Carrega as disciplinas a partir do ficheiro JSON local
+  carregarDisciplinasDoJSON() {
+    this.http.get<any>('assets/disciplinas.json').subscribe({
+      next: (dados) => {
+        // Extrai o array de disciplinas do objeto recebido
+        this.listaDisciplinasJSON = dados.disciplinas; 
+        console.log('Disciplinas lidas com sucesso:', this.listaDisciplinasJSON);
+      },
+      error: (erro) => {
+        console.error('Erro a ler o JSON:', erro);
+      }
     });
   }
   
+  // Inicializa o serviço de armazenamento local (Ionic Storage)
   async init() {
     await this.storage.create();
     await this.carregarDadosDoStorage();
@@ -54,12 +64,15 @@ export class DataService {
   // ==========================================
   // LÓGICA DO STORAGE (LEITURA E ESCRITA)
   // ==========================================
+  
+  // Carrega os dados guardados no dispositivo ou inicializa com dados de demonstração
   private async carregarDadosDoStorage() {
     const tarefasGuardadas = await this.storage.get('meus_prazos');
+    
     if (tarefasGuardadas && tarefasGuardadas.length > 0) {
       this.listaDePrazos = tarefasGuardadas;
     } else {
-      // Dados de demonstração caso a base de dados esteja vazia
+      // Dados iniciais de demonstração para a primeira utilização
       this.listaDePrazos = [
         {
           titulo: 'Relatório SO - Gestão de Memória',
@@ -93,29 +106,36 @@ export class DataService {
   // ==========================================
   // MÉTODOS PARA AS TAREFAS
   // ==========================================
+  
+  // Adiciona um novo prazo à base de dados com estado inicial 'Pendente'
   async adicionarPrazo(novoPrazo: NovoPrazo) {
     this.listaDePrazos.push({ ...novoPrazo, estado: 'Pendente' });
     await this.storage.set('meus_prazos', this.listaDePrazos);
   }
 
+  // Atualiza o estado das tarefas no armazenamento local
   async atualizarEstadoTarefas() {
     await this.storage.set('meus_prazos', this.listaDePrazos);
+  }
+
+  // Adiciona uma nova tarefa à lista de prazos em memória
+  adicionarTarefa(novaTarefa: NovoPrazo) {
+    this.listaDePrazos.push(novaTarefa);
   }
 
   // ==========================================
   // MÉTODOS PARA OS GRUPOS
   // ==========================================
+  
+  // Adiciona um novo grupo e guarda no armazenamento local
   async adicionarGrupo(grupo: any) {
     this.listaGrupos.push(grupo);
     await this.storage.set('meus_grupos', this.listaGrupos);
   }
 
+  // Remove um grupo existente e atualiza o armazenamento local
   async removerGrupo(grupoParaApagar: any) {
     this.listaGrupos = this.listaGrupos.filter(g => g !== grupoParaApagar);
     await this.storage.set('meus_grupos', this.listaGrupos);
-  }
-  // Adiciona a nova tarefa à lista principal
-  adicionarTarefa(novaTarefa: NovoPrazo) {
-    this.listaDePrazos.push(novaTarefa);
   }
 }
