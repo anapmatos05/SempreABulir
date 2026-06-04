@@ -2,6 +2,11 @@ import { Component } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 
+/**
+ * Componente raiz da aplicação.
+ * Responsável por configurar as definições nativas (ex: orientação)
+ * e definir as rotas que aparecem no menu lateral.
+ */
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -10,7 +15,7 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 })
 export class AppComponent {
   
-  // 1. ADICIONAMOS A VARIÁVEL AQUI PARA O HTML DEIXAR DE DAR ERRO
+  // Definição das páginas acessíveis através do menu lateral
   public appPages = [
     { title: 'Calendário', url: '/folder/calendario', icon: 'calendar' },
     { title: 'Tarefas', url: '/folder/tarefas', icon: 'checkbox' },
@@ -21,15 +26,21 @@ export class AppComponent {
     this.iniciarApp();
   }
 
+  /**
+   * Configuração de inicialização da aplicação:
+   * 1. Aguarda que a plataforma Ionic esteja totalmente carregada.
+   * 2. Bloqueia a orientação do ecrã para 'Portrait' se correr em ambiente nativo.
+   */
   async iniciarApp() {
     await this.platform.ready();
     
-    // Bloqueia a rotação para ficar sempre em modo "Retrato" (em pé)
+    // Verificação de ambiente para garantir execução apenas em dispositivos móveis (Capacitor)
     if (this.platform.is('capacitor')) {
       try {
         await ScreenOrientation.lock({ orientation: 'portrait' });
       } catch (error) {
-        console.log('A rotação só é bloqueada no telemóvel nativo.');
+        // Log para ambiente de desenvolvimento (browser ignora o bloqueio)
+        console.log('A rotação só é bloqueada em ambiente nativo.');
       }
     }
   }

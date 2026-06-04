@@ -1,61 +1,37 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { DataService, NovoPrazo } from '../services/data'; // Ajusta o caminho se necessário
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NavController } from '@ionic/angular';
-import { Router } from '@angular/router';
 import { Storage } from '@ionic/storage-angular';
+import { DataService, NovoPrazo } from '../services/data'; 
 
 @Component({
   selector: 'app-folder',
   templateUrl: './folder.page.html',
   styleUrls: ['./folder.page.scss'],
-  standalone: false // Mantemos a arquitetura clássica baseada em NgModules
+  standalone: false 
 })
 export class FolderPage implements OnInit {
+  // Variáveis de controlo de navegação e interface
   public folder!: string;
-  // 1. Variável para guardar o dia em que o utilizador clicou (começa no dia de hoje)
+  public abaAtiva: string = 'Todas';
+  
+  // Variáveis de calendário e seleção
   public dataSelecionadaCalendario: string = new Date().toISOString();
   public tarefaSelecionada: any = null;
 
-  // 2. Filtra as tarefas para mostrar apenas as do dia selecionado
-  get tarefasDoDiaSelecionado(): any[] {
-    if (!this.dataSelecionadaCalendario) return [];
-    
-    // O calendário devolve a data completa (ex: 2026-06-03T12:00:00)
-    // Nós só queremos a parte do dia (2026-06-03) para comparar
-    const dataLimpa = this.dataSelecionadaCalendario.split('T')[0];
-    
-    return this.listaDePrazos.filter(tarefa => tarefa.data === dataLimpa);
-  }
-
-  // 3. (BÓNUS) Cria as "bolinhas" de cor para pintar os dias no calendário!
-  get diasComCores() {
-    return this.listaDePrazos.map(tarefa => {
-      return {
-        date: tarefa.data,
-        textColor: '#000000',
-        // Verde se estiver concluída, amarelo se ainda estiver pendente
-        backgroundColor: tarefa.estado === 'Concluída' ? '#bbf7d0' : '#fde047' 
-      };
-    });
-  }
-
-  // Variáveis para os filtros
+  // Variáveis de filtragem
   public termoPesquisa: string = '';
   public disciplinaFiltro: string = 'todas';
-  public abaAtiva: string = 'Todas';
   public filtroTempo: string = 'todas';
 
-  // Objeto do formulário
+  // Formulário Reativo (Reactive Forms) para criação de tarefas
   public prazoForm: FormGroup;
 
-
-  // Variáveis dos Grupos
+  // Estrutura de dados temporária para criação de grupos
   public novoGrupo: any = { nome: '', disciplina: '', membros: ['Ana Matos'] };
   public novoMembroNome: string = '';
 
-  // INJETAMOS O NOVO SERVIÇO AQUI
   constructor(
     private activatedRoute: ActivatedRoute,
     private dataService: DataService,
@@ -64,7 +40,7 @@ export class FolderPage implements OnInit {
     private router: Router,
     private storage: Storage
   ) {
-    // Inicializa o Formulário Reativo
+    // Configuração do Formulário Reativo e respetivas validações
     this.prazoForm = this.fb.group({
       titulo: ['', Validators.required],
       descricao: [''],
@@ -77,6 +53,7 @@ export class FolderPage implements OnInit {
   }
 
   ngOnInit() {
+    // Subscrição dos parâmetros de rota para carregar a vista adequada
     this.activatedRoute.paramMap.subscribe(params => {
       const idRota = params.get('id') || 'calendario';
       this.folder = idRota.toLowerCase();
@@ -84,13 +61,24 @@ export class FolderPage implements OnInit {
     });
   }
 
-  // Lemos as listas diretamente do nosso DataService
+  // ==========================================
+  // ACESSO AOS DADOS DO SERVIÇO
+  // ==========================================
+  
   get listaDePrazos(): NovoPrazo[] { return this.dataService.listaDePrazos; }
   get listaGrupos(): any[] { return this.dataService.listaGrupos; }
+  get listaDisciplinasUnicas(): string[] { return this.dataService.listaDisciplinasJSON || []; }
+
+  // Sincroniza o estado atual das listas com o armazenamento local do dispositivo
+  salvarDados() {
+    this.storage.set('meus_prazos', this.dataService.listaDePrazos);
+    this.storage.set('meus_grupos', this.dataService.listaGrupos);
+  }
 
   // ==========================================
-  // LÓGICA DA INTERFACE: GRUPOS
+  // GESTÃO DE GRUPOS
   // ==========================================
+  
   adicionarMembroAoGrupo() {
     if (this.novoMembroNome.trim() !== '') {
       this.novoGrupo.membros.push(this.novoMembroNome.trim());
@@ -103,49 +91,53 @@ export class FolderPage implements OnInit {
   }
 
   guardarNovoGrupo(modal: any) {
-    // 1. Verifica se os campos de texto estão preenchidos
+    // Validação de preenchimento obrigatório
     if (this.novoGrupo.nome.trim() === '' || this.novoGrupo.disciplina.trim() === '') {
-      alert('Por favor, preenche o Nome do Grupo e a Disciplina.');
+      alert('Por favor, preencha o Nome do Grupo e a Disciplina.');
       return;
     }
 
-    // 2. A NOVA VALIDAÇÃO: Verifica se o grupo tem pelo menos 1 membro
+    // Validação de consistência do grupo
     if (this.novoGrupo.membros.length === 0) {
-      alert('O grupo não pode estar vazio! Adiciona pelo menos a ti próprio.');
+      alert('O grupo não pode estar vazio. Adicione pelo menos um membro.');
       return;
     }
 
-    // Se passou nas duas validações, grava o grupo
     const grupoParaGravar = {
       nome: this.novoGrupo.nome,
       disciplina: this.novoGrupo.disciplina,
       membros: [...this.novoGrupo.membros],
-      tarefas: [] // Começa sem tarefas
+      tarefas: [] 
     };
 
     this.dataService.adicionarGrupo(grupoParaGravar); 
-
-    this.salvarDados(); // Salva as mudanças no Storage
+    this.salvarDados(); 
     
-    // Limpa o formulário e repõe a "Ana Matos" por defeito para o próximo grupo!
+    // Reposição do estado inicial para futuras criações
     this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
     modal.dismiss();
   }
 
   apagarGrupo(grupoParaApagar: any) {
-    this.dataService.removerGrupo(grupoParaApagar); // Delega para o Service
-    this.salvarDados(); // Salva as mudanças no Storage
+    this.dataService.removerGrupo(grupoParaApagar);
+    this.salvarDados();
   }
 
   obterIniciais(nome: string): string {
-    let partes = nome.trim().split(' ');
+    const partes = nome.trim().split(' ');
     if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
     return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
   }
 
+  abrirGrupo(nomeDoGrupo: string) {
+    // Navegação com passagem de parâmetros através do Angular Router
+    this.router.navigate(['/detalhe-grupo', nomeDoGrupo]);
+  }
+
   // ==========================================
-  // LÓGICA DA INTERFACE: PRAZOS / CALENDÁRIO
+  // GESTÃO DE TAREFAS E FILTRAGEM MULTICRITÉRIO
   // ==========================================
+  
   prazoJaExpirou(dataString: string, horaString: string): boolean {
     if (!dataString) return false;
     const horaPrazo = horaString || '23:59';
@@ -158,15 +150,13 @@ export class FolderPage implements OnInit {
     return this.listaDePrazos.filter(p => !this.prazoJaExpirou(p.data, p.hora) && p.estado !== 'Concluída').length;
   }
 
-  // Esta "ponte" vai buscar as disciplinas atualizadas diretamente ao Serviço
-  get listaDisciplinasUnicas(): string[] {
-    return this.dataService.listaDisciplinasJSON || [];
-  }
-
+  // Motor de filtragem combinada: Pesquisa textual, Disciplina, Estado e Tempo
   get tarefasFiltradas(): NovoPrazo[] {
     return this.listaDePrazos.filter(tarefa => {
+      
       const correspondePesquisa = tarefa.titulo.toLowerCase().includes(this.termoPesquisa.toLowerCase()) || 
                                   (tarefa.descricao && tarefa.descricao.toLowerCase().includes(this.termoPesquisa.toLowerCase()));
+      
       const correspondeDisciplina = this.disciplinaFiltro === 'todas' || tarefa.disciplina === this.disciplinaFiltro;
       
       let correspondeAba = true;
@@ -175,26 +165,20 @@ export class FolderPage implements OnInit {
                          (this.abaAtiva === 'Concluídas' && tarefa.estado === 'Concluída');
       }
 
-      // NOVO FILTRO DE TEMPO CORRIGIDO (Não apaga as tarefas concluídas!)
       let correspondeTempo = true;
       if (this.filtroTempo !== 'todas') {
         const hoje = new Date();
         hoje.setHours(0,0,0,0);
+        
         const dataPrazo = new Date(tarefa.data);
         dataPrazo.setHours(0,0,0,0);
-        // Calcula a diferença em dias matematicamente
+        
         const diffDias = Math.ceil((dataPrazo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
 
-        // Mostra tarefas que estão dentro do prazo pedido (inclui as que estão em atraso)
-        if (this.filtroTempo === '24h') {
-          correspondeTempo = diffDias <= 1; 
-        } else if (this.filtroTempo === '3dias') {
-          correspondeTempo = diffDias <= 3;
-        } else if (this.filtroTempo === 'semana') {
-          correspondeTempo = diffDias <= 7;
-        } else if (this.filtroTempo === 'mes') {
-          correspondeTempo = diffDias <= 30;
-        }
+        if (this.filtroTempo === '24h') correspondeTempo = diffDias <= 1; 
+        else if (this.filtroTempo === '3dias') correspondeTempo = diffDias <= 3;
+        else if (this.filtroTempo === 'semana') correspondeTempo = diffDias <= 7;
+        else if (this.filtroTempo === 'mes') correspondeTempo = diffDias <= 30;
       }
 
       return correspondePesquisa && correspondeDisciplina && correspondeAba && correspondeTempo;
@@ -215,6 +199,7 @@ export class FolderPage implements OnInit {
     hoje.setHours(0,0,0,0);
     const dataEntrega = new Date(dataString);
     dataEntrega.setHours(0,0,0,0);
+    
     const diferencaDias = Math.ceil((dataEntrega.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diferencaDias === 0) return 'Hoje';
@@ -223,16 +208,12 @@ export class FolderPage implements OnInit {
     return `${diferencaDias} dias`;
   }
 
-  gerarSemanaAtual() {
-  }
-
   guardarNovoPrazo(modal: any) {
     if (this.prazoForm.invalid) {
-      alert('Por favor, preenche todos os campos obrigatórios.');
+      alert('Por favor, preencha todos os campos obrigatórios.');
       return; 
     }
 
-    // Criamos o objeto completo conforme a interface NovoPrazo que o teu Service espera
     const novaTarefa: NovoPrazo = {
       titulo: this.prazoForm.value.titulo,
       descricao: this.prazoForm.value.descricao,
@@ -241,18 +222,13 @@ export class FolderPage implements OnInit {
       disciplina: this.prazoForm.value.disciplina,
       prioridade: this.prazoForm.value.prioridade,
       notificacao: this.prazoForm.value.notificacao,
-      estado: 'Pendente' // Estado inicial padrão
+      estado: 'Pendente' 
     };
 
-    // Agora sim, enviamos para o teu Service!
     this.dataService.adicionarTarefa(novaTarefa);
-    
     this.salvarDados();
 
-    // Limpa o formulário e fecha
     this.prazoForm.reset({ prioridade: 'media', notificacao: false });
-    
-    // Se estivermos no calendário, atualizamos a vista dos dias
     if (this.folder === 'calendario') this.gerarSemanaAtual();
     
     modal.dismiss();
@@ -270,30 +246,38 @@ export class FolderPage implements OnInit {
     modal.present();
   }
 
-  abrirGrupo(nomeDoGrupo: string) {
-    // Isto faz a app navegar e envia o nome do grupo no link!
-    this.router.navigate(['/detalhe-grupo', nomeDoGrupo]);
+  // ==========================================
+  // LÓGICA DO CALENDÁRIO
+  // ==========================================
+  
+  get tarefasDoDiaSelecionado(): any[] {
+    if (!this.dataSelecionadaCalendario) return [];
+    
+    // Extrai unicamente a data (YYYY-MM-DD) da string ISO
+    const dataLimpa = this.dataSelecionadaCalendario.split('T')[0];
+    return this.listaDePrazos.filter(tarefa => tarefa.data === dataLimpa);
   }
 
-  // Grava as listas do DataService no disco do dispositivo
-  salvarDados() {
-    this.storage.set('meus_prazos', this.dataService.listaDePrazos);
-    this.storage.set('meus_grupos', this.dataService.listaGrupos);
+  get diasComCores() {
+    return this.listaDePrazos.map(tarefa => {
+      return {
+        date: tarefa.data,
+        textColor: '#000000',
+        backgroundColor: tarefa.estado === 'Concluída' ? '#bbf7d0' : '#fde047' 
+      };
+    });
   }
 
-  // Procura a próxima tarefa agendada a partir da data que está selecionada
   get proximaTarefaAgendada(): any[] {
     const dataCalendario = this.dataSelecionadaCalendario.split('T')[0];
     
-    // Filtra tarefas ativas que têm data MAIOR que a data clicada no calendário
     const futuras = this.listaDePrazos.filter(t => 
       t.estado !== 'Concluída' && t.data > dataCalendario
     );
     
-    // Ordena da mais próxima para a mais distante cronologicamente
+    // Ordenação cronológica ascendente
     futuras.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
     
-    // Devolvemos apenas a primeira tarefa (a mais próxima) num array para o HTML ler facilmente
     return futuras.length > 0 ? [futuras[0]] : [];
   }
 
@@ -303,18 +287,16 @@ export class FolderPage implements OnInit {
     const dias = [];
 
     for (let i = 0; i < 4; i++) {
-      // Fazemos uma cópia do dia de hoje para não estragar a data original
       const dataDia = new Date(hoje.getTime());
       dataDia.setDate(hoje.getDate() + i);
 
-      // Vamos à lista procurar as tarefas que combinam com este dia
       const prazosDoDia = this.listaDePrazos.filter(prazo => {
         if (!prazo.data) return false;
         
-        // Separa a string "2026-06-05" em Ano=2026, Mês=6, Dia=5 (Isto torna as datas 100% à prova de erros e fusos horários!)
+        // Desconstrução manual da data para prevenir discrepâncias de timezone
         const partes = prazo.data.split('T')[0].split('-'); 
         const ano = parseInt(partes[0], 10);
-        const mes = parseInt(partes[1], 10) - 1; // O JavaScript conta os meses de 0 a 11
+        const mes = parseInt(partes[1], 10) - 1; 
         const dia = parseInt(partes[2], 10);
 
         return ano === dataDia.getFullYear() &&
@@ -335,7 +317,13 @@ export class FolderPage implements OnInit {
     return dias;
   }
 
+  gerarSemanaAtual() {
+    // Método mantido para futura expansão da lógica de paginação semanal
+  }
+
   private isMesmoDia(data1: Date, data2: Date): boolean {
-    return data1.getDate() === data2.getDate() && data1.getMonth() === data2.getMonth() && data1.getFullYear() === data2.getFullYear();
+    return data1.getDate() === data2.getDate() && 
+           data1.getMonth() === data2.getMonth() && 
+           data1.getFullYear() === data2.getFullYear();
   }
 }

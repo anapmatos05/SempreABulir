@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
 import { HttpClient } from '@angular/common/http';
 
-// As tuas interfaces passam a viver aqui para poderem ser usadas em toda a app
+// Interfaces de dados partilhadas por toda a aplicação
 export interface NovoPrazo {
   titulo: string;
   descricao: string;
@@ -34,29 +34,27 @@ export class DataService {
   private isPronto = false; 
   public listaDisciplinasJSON: string[] = [];
 
-  // A MÁGICA ACONTECE AQUI: Pedimos o "Storage" dentro dos parênteses!
+  // Injeção de dependências do Storage e HttpClient
   constructor(private storage: Storage, private http: HttpClient) {
-    this.carregarDisciplinasDoJSON(); // Carrega o JSON
-    this.init(); // Arranca a Base de Dados (Storage) imediatamente!
+    this.carregarDisciplinasDoJSON();
+    this.init(); 
   }
 
-  // A função que vai à pasta assets ler o teu ficheiro
-  // A versão Angular Oficial (que avisa o ecrã para se atualizar!)
+  // Carrega as disciplinas a partir do ficheiro JSON local
   carregarDisciplinasDoJSON() {
-    // Trocamos <string[]> por <any> para ele aceitar o objeto que vem do ficheiro
     this.http.get<any>('assets/disciplinas.json').subscribe({
       next: (dados) => {
-        // Aqui dizemos para ele ir buscar a lista que está DENTRO da propriedade "disciplinas"
+        // Extrai o array de disciplinas do objeto recebido
         this.listaDisciplinasJSON = dados.disciplinas; 
-        
-        console.log(' Disciplinas lidas com sucesso:', this.listaDisciplinasJSON);
+        console.log('Disciplinas lidas com sucesso:', this.listaDisciplinasJSON);
       },
       error: (erro) => {
-        console.error(' Erro a ler o JSON:', erro);
+        console.error('Erro a ler o JSON:', erro);
       }
     });
   }
   
+  // Inicializa o serviço de armazenamento local (Ionic Storage)
   async init() {
     await this.storage.create();
     await this.carregarDadosDoStorage();
@@ -66,12 +64,15 @@ export class DataService {
   // ==========================================
   // LÓGICA DO STORAGE (LEITURA E ESCRITA)
   // ==========================================
+  
+  // Carrega os dados guardados no dispositivo ou inicializa com dados de demonstração
   private async carregarDadosDoStorage() {
     const tarefasGuardadas = await this.storage.get('meus_prazos');
+    
     if (tarefasGuardadas && tarefasGuardadas.length > 0) {
       this.listaDePrazos = tarefasGuardadas;
     } else {
-      // Dados de demonstração caso a base de dados esteja vazia
+      // Dados iniciais de demonstração para a primeira utilização
       this.listaDePrazos = [
         {
           titulo: 'Relatório SO - Gestão de Memória',
@@ -105,29 +106,36 @@ export class DataService {
   // ==========================================
   // MÉTODOS PARA AS TAREFAS
   // ==========================================
+  
+  // Adiciona um novo prazo à base de dados com estado inicial 'Pendente'
   async adicionarPrazo(novoPrazo: NovoPrazo) {
     this.listaDePrazos.push({ ...novoPrazo, estado: 'Pendente' });
     await this.storage.set('meus_prazos', this.listaDePrazos);
   }
 
+  // Atualiza o estado das tarefas no armazenamento local
   async atualizarEstadoTarefas() {
     await this.storage.set('meus_prazos', this.listaDePrazos);
+  }
+
+  // Adiciona uma nova tarefa à lista de prazos em memória
+  adicionarTarefa(novaTarefa: NovoPrazo) {
+    this.listaDePrazos.push(novaTarefa);
   }
 
   // ==========================================
   // MÉTODOS PARA OS GRUPOS
   // ==========================================
+  
+  // Adiciona um novo grupo e guarda no armazenamento local
   async adicionarGrupo(grupo: any) {
     this.listaGrupos.push(grupo);
     await this.storage.set('meus_grupos', this.listaGrupos);
   }
 
+  // Remove um grupo existente e atualiza o armazenamento local
   async removerGrupo(grupoParaApagar: any) {
     this.listaGrupos = this.listaGrupos.filter(g => g !== grupoParaApagar);
     await this.storage.set('meus_grupos', this.listaGrupos);
-  }
-  // Adiciona a nova tarefa à lista principal
-  adicionarTarefa(novaTarefa: NovoPrazo) {
-    this.listaDePrazos.push(novaTarefa);
   }
 }
