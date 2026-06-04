@@ -1,0 +1,27 @@
+Declaração de Utilização de IA - Projeto Final IHM
+
+1. Trabalho realizado com esforço Humano (Sem IA):
+
+- Idealização e design da interface do utilizador (UI).
+
+- Lógica base de navegação visual, estrutura de variáveis de apresentação (Prazos, Grupos) e Formulários Reativos (Reactive Forms).
+
+- Criação do ficheiro JSON com as opções das disciplinas.
+
+2. Trabalho realizado com recurso a Modelos de IA (Gemini):
+
+- Construção de toda a estrutura HTML dos ecrãs (Tabs principais, detalhes de grupos e modais)[ Sempre revisado por humanos ].
+
+- Estilização avançada utilizando CSS/SCSS (cores académicas, tipografia, margens e ícones) [ Sempre revisado por humanos ].
+
+- Routing: Apoio na transição da navegação baseada em visualização (*ngIf) para o sistema de rotas nativo do Angular (Angular Router e ActivatedRoute), permitindo a passagem do nome do grupo como parâmetro no URL.
+
+- Ionic Storage: Assistência na configuração do serviço de base de dados local (@ionic/storage-angular) e na lógica de persistência de dados (carregar listas no arranque e guardar após alterações) utilizando injeção de dependências no DataService.
+
+- Consumo de APIs/JSON: Refatorização da leitura do ficheiro local disciplinas.json, transitando do uso de fetch nativo para o HttpClient oficial do Angular, incluindo a correção de erros de tipagem de Objetos vs Arrays.
+
+- Capacitor: Geração do código necessário para o bloqueio nativo da orientação do ecrã do dispositivo (modo Portrait) através do plugin @capacitor/screen-orientation.
+
+- Depuração (Debugging): Apoio na identificação e correção de erros de compilação do Angular (ex: correção do atributo standalone: false nos componentes).
+
+- Comentários
