@@ -137,10 +137,9 @@
           </div>
           <div>
             <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000; font-size: 14px;">Responsável</label>
-            <select [(ngModel)]="novaSubtarefa.responsavel" style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #000; outline: none;">
-              <option value="" disabled selected hidden>Selecionar Membro...</option>
-              <option *ngFor="let membro of grupoDetalhado.membros" [value]="membro.nome">{{ membro.nome }}</option>
-            </select>
+            <ion-select [(ngModel)]="novaSubtarefa.responsavel" interface="popover" placeholder="Selecionar Membro..." style="width: 100%; --min-width: 0;">
+              <ion-select-option *ngFor="let membro of grupoDetalhado.membros" [value]="membro.nome">{{ membro.nome }}</ion-select-option>
+            </ion-select>
           </div>
           <div>
             <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000; font-size: 14px;">Data Limite</label>
