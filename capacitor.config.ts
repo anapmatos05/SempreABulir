@@ -7,8 +7,9 @@ const config: CapacitorConfig = {
   // Adiciona este bloco de plugins:
   plugins: {
     StatusBar: {
-      backgroundColor: '#f4c20d', // O teu Amarelo Académico
-      style: 'LIGHT' // Coloca os ícones da bateria e horas a preto!
+      overlaysWebView: false,
+      backgroundColor: '#f4c20d',
+      style: 'LIGHT'
     }
   }
 };
