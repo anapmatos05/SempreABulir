@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { Capacitor } from '@capacitor/core';
 // Importação necessária para manipular a barra de topo (notificações e bateria)
 import { StatusBar, Style } from '@capacitor/status-bar';
 
@@ -25,7 +26,14 @@ export class AppComponent {
   ];
 
   constructor(private platform: Platform) {
-    this.iniciarApp();
+    if (Capacitor.isNativePlatform()) {
+      // Diz ao sistema para a app não se esconder atrás da barra
+      StatusBar.setOverlaysWebView({ overlay: false });
+      // Pinta a barra do teu Amarelo
+      StatusBar.setBackgroundColor({ color: '#f4c20d' });
+      // Coloca os ícones (horas e bateria) a preto para se conseguirem ler
+      StatusBar.setStyle({ style: Style.Light });
+    }
   }
 
   /**
