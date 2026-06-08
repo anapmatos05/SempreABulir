@@ -208,6 +208,43 @@ export class FolderPage implements OnInit {
     return `${diferencaDias} dias`;
   }
 
+  /** Retorna a cor do ponto do calendário para uma tarefa específica.
+   *  Regras:
+   *  - Vermelho: expirado (prazo já passou e não concluída)
+   *  - Laranja: perto do prazo (<= 2 dias e não concluída)
+   *  - Azul: tarefa pertence a um grupo (detecta propriedade `grupo` ou presença em `listaGrupos`)
+   *  - Caso contrário: cor por disciplina (mantenho lógica existente)
+   */
+  getDotColor(tarefa: any): string {
+    if (!tarefa) return '#651fff';
+
+    // Verificar se expirou (considerando hora se disponível)
+    const hora = tarefa.hora || '23:59';
+    const dataPrazoComHora = new Date(`${tarefa.data}T${hora}`);
+    const agora = new Date();
+    if (tarefa.estado !== 'Concluída' && dataPrazoComHora < agora) return '#d32f2f';
+
+    // Verificar proximidade (<= 2 dias)
+    const hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    const dataPrazo = new Date(tarefa.data);
+    dataPrazo.setHours(0,0,0,0);
+    const diffDias = Math.ceil((dataPrazo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+    if (tarefa.estado !== 'Concluída' && diffDias <= 2) return '#ff9100';
+
+    // Detectar tarefa de grupo: propriedade explícita ou presença no array de tarefas do grupo
+    if ((tarefa as any).grupo) return '#2196F3';
+    if (this.listaGrupos && this.listaGrupos.some(g => g.tarefas && g.tarefas.some((gt: any) => gt.titulo === tarefa.titulo))) {
+      return '#2196F3';
+    }
+
+    // Fallback por disciplina (mantendo cores anteriores)
+    if (tarefa.disciplina?.includes('Operativos') || tarefa.disciplina === 'SO') return '#d32f2f';
+    if (tarefa.disciplina?.includes('Redes') || tarefa.disciplina === 'REDSIS') return '#ff9100';
+
+    return '#651fff';
+  }
+
   guardarNovoPrazo(modal: any) {
     if (this.prazoForm.invalid) {
       alert('Por favor, preencha todos os campos obrigatórios.');
