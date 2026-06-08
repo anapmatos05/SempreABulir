@@ -105,3 +105,12 @@ ion-tab-button {
   --background-focused: rgba(244, 194, 13, 0.15);
   --background-hover: rgba(244, 194, 13, 0.10);
 }
+
+/* ========================================================
+   CORREÇÃO DA BARRA SUPERIOR (SAFE AREA DA CÂMARA)
+======================================================== */
+ion-header, 
+.cabecalho-mobile {
+  /* Lê o tamanho exato da barra de notificações/câmara do telemóvel e empurra o conteúdo para baixo */
+  padding-top: var(--ion-safe-area-top, 40px) !important;
+}
