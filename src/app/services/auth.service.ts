@@ -18,6 +18,8 @@ export class AuthService {
     private afAuth: AngularFireAuth,
     private afs: AngularFirestore
   ) {
+    // Força a inicialização da base de dados aqui dentro da zona segura do Angular
+    const iniciarDB = this.afs.firestore;
     this.initializeAuthState();
   }
 
