@@ -138,4 +138,12 @@ export class DataService {
     this.listaGrupos = this.listaGrupos.filter(g => g !== grupoParaApagar);
     await this.storage.set('meus_grupos', this.listaGrupos);
   }
+
+  obterGrupoPorNome(nome: string) {
+    return this.listaGrupos.find(g => g.nome === nome);
+  }
+
+  async salvarGrupos() {
+    await this.storage.set('meus_grupos', this.listaGrupos);
+  }
 }

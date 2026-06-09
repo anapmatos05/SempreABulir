@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="back()" color="primary">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Meu Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Secção de Perfil do Utilizador -->
+  <div class="profile-section">
+    <div class="profile-card">
+      <ion-avatar class="avatar-large">
+        <div class="avatar-letter">{{ displayName.charAt(0) }}</div>
+      </ion-avatar>
+      <div class="profile-info">
+        <h2 class="profile-name">{{ displayName }}</h2>
+        <p class="profile-status">Utilizador</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secção de Detalhes -->
+  <div class="details-section">
+    <h3 class="section-title">Detalhes da Conta</h3>
+    <ion-list class="details-list">
+      <ion-item lines="full">
+        <ion-icon name="mail-outline" slot="start" color="primary"></ion-icon>
+        <ion-label class="label-title">Email</ion-label>
+        <ion-text class="label-value" slot="end">{{ email }}</ion-text>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- Secção de Ações -->
+  <div class="actions-section">
+    <ion-button expand="block" color="danger" (click)="logout()" size="large">
+      <ion-icon name="log-out" slot="start"></ion-icon>
+      Terminar sessão
+    </ion-button>
+  </div>
+</ion-content>

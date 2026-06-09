@@ -9,6 +9,12 @@ import { AppRoutingModule } from './app-routing.module';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { HttpClientModule } from '@angular/common/http';
 
+// Firebase
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import { firebaseConfig } from '../environments/firebase.config';
+
 /**
  * Módulo raiz da aplicação (AppModule).
  * É aqui que registamos os módulos globais que estarão disponíveis
@@ -21,7 +27,10 @@ import { HttpClientModule } from '@angular/common/http';
     IonicModule.forRoot(),      // Inicialização global do framework Ionic
     AppRoutingModule,           // Configuração de rotas definida no AppRoutingModule
     IonicStorageModule.forRoot(), // Módulo global para o armazenamento local (Base de Dados)
-    HttpClientModule            // Módulo global para realizar chamadas HTTP (leitura de JSON)
+    HttpClientModule,           // Módulo global para realizar chamadas HTTP (leitura de JSON)
+    AngularFireModule.initializeApp(firebaseConfig),
+    AngularFireAuthModule,
+    AngularFirestoreModule
   ],
   providers: [
     // Define a estratégia de reutilização de rotas do Ionic para melhor performance

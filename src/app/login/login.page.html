@@ -1,0 +1,128 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar style="--background: #f4c20d; padding: 20px 10px;">
+    <div style="text-align: center;">
+      <strong style="font-size: 28px; color: #000;">SempreABulir</strong>
+      <p style="margin: 5px 0 0 0; color: #000; opacity: 0.7; font-size: 12px;">Agenda Académica</p>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" style="--background: #ffffff;">
+  <div style="display: flex; flex-direction: column; justify-content: center; min-height: 100%; padding: 20px 0;">
+
+    <!-- Formulário de Login -->
+    <div *ngIf="!eRegistro" style="display: flex; flex-direction: column; gap: 20px;">
+      <div>
+        <h1 style="font-size: 24px; font-weight: bold; color: #000; margin: 0 0 10px 0;">Bem-vindo</h1>
+        <p style="color: #666; font-size: 14px; margin: 0;">Faz login na tua conta para continuares.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="font-weight: 600; color: #000; font-size: 13px; display: block; margin-bottom: 6px;">Email</label>
+          <input 
+            type="email" 
+            [(ngModel)]="email" 
+            placeholder="nome@example.com" 
+            style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f9f9f9; color: #000; font-size: 14px;"
+          />
+        </div>
+
+        <div>
+          <label style="font-weight: 600; color: #000; font-size: 13px; display: block; margin-bottom: 6px;">Senha</label>
+          <input 
+            type="password" 
+            [(ngModel)]="password" 
+            placeholder="••••••••" 
+            style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f9f9f9; color: #000; font-size: 14px;"
+          />
+        </div>
+      </div>
+
+      <div *ngIf="erro" style="background: #ffebee; border-left: 4px solid #d32f2f; padding: 12px 14px; border-radius: 6px; color: #d32f2f; font-size: 13px;">
+        {{ erro }}
+      </div>
+
+      <button 
+        (click)="fazerLogin()" 
+        [disabled]="loading"
+        style="width: 100%; padding: 14px; border-radius: 10px; border: none; background: #f4c20d; color: #000; font-weight: bold; font-size: 15px; cursor: pointer;"
+      >
+        {{ loading ? 'A entrar...' : 'Entrar' }}
+      </button>
+
+      <div style="text-align: center;">
+        <span style="color: #666; font-size: 14px;">Não tens conta? </span>
+        <button 
+          (click)="alternarModo()" 
+          style="background: none; border: none; color: #f4c20d; font-weight: bold; cursor: pointer; font-size: 14px; text-decoration: underline;"
+        >
+          Registar aqui
+        </button>
+      </div>
+    </div>
+
+    <!-- Formulário de Registo -->
+    <div *ngIf="eRegistro" style="display: flex; flex-direction: column; gap: 20px;">
+      <div>
+        <h1 style="font-size: 24px; font-weight: bold; color: #000; margin: 0 0 10px 0;">Criar Conta</h1>
+        <p style="color: #666; font-size: 14px; margin: 0;">Regista-te para começar a usar a Agenda.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="font-weight: 600; color: #000; font-size: 13px; display: block; margin-bottom: 6px;">Nome Completo</label>
+          <input 
+            type="text" 
+            [(ngModel)]="nome" 
+            placeholder="ex: Ana Matos" 
+            style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f9f9f9; color: #000; font-size: 14px;"
+          />
+        </div>
+
+        <div>
+          <label style="font-weight: 600; color: #000; font-size: 13px; display: block; margin-bottom: 6px;">Email</label>
+          <input 
+            type="email" 
+            [(ngModel)]="email" 
+            placeholder="nome@example.com" 
+            style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f9f9f9; color: #000; font-size: 14px;"
+          />
+        </div>
+
+        <div>
+          <label style="font-weight: 600; color: #000; font-size: 13px; display: block; margin-bottom: 6px;">Senha</label>
+          <input 
+            type="password" 
+            [(ngModel)]="password" 
+            placeholder="Mínimo 6 caracteres" 
+            style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f9f9f9; color: #000; font-size: 14px;"
+          />
+        </div>
+      </div>
+
+      <div *ngIf="erro" style="background: #ffebee; border-left: 4px solid #d32f2f; padding: 12px 14px; border-radius: 6px; color: #d32f2f; font-size: 13px;">
+        {{ erro }}
+      </div>
+
+      <button 
+        (click)="fazerRegistro()" 
+        [disabled]="loading"
+        style="width: 100%; padding: 14px; border-radius: 10px; border: none; background: #f4c20d; color: #000; font-weight: bold; font-size: 15px; cursor: pointer;"
+      >
+        {{ loading ? 'A registar...' : 'Registar' }}
+      </button>
+
+      <div style="text-align: center;">
+        <span style="color: #666; font-size: 14px;">Já tens conta? </span>
+        <button 
+          (click)="alternarModo()" 
+          style="background: none; border: none; color: #f4c20d; font-weight: bold; cursor: pointer; font-size: 14px; text-decoration: underline;"
+        >
+          Entra aqui
+        </button>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

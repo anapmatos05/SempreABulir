@@ -2,8 +2,9 @@
   <ion-split-pane contentId="main-content" when="false">
     
     <ion-menu contentId="main-content" type="overlay" swipeGesture="false">
-      <ion-content style="--background: #ffffff; padding: 5px;">
-        <div style="background: #f5f5f5; border-radius: 12px; padding: 10px; margin: 30px 10px 20px 10px;">
+      <ion-content class="menu-custom-content">
+        
+        <div class="menu-inner-container">
           <ion-list lines="none" style="background: transparent; padding: 0;">
             
             <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages; let i = index">
@@ -11,10 +12,10 @@
                         [routerLink]="[p.url]" 
                         routerLinkActive="selected" 
                         detail="false" 
-                        style="--background: transparent; --background-activated: #e0e0e0; border-radius: 8px; margin-bottom: 5px;">
+                        class="menu-item-custom">
                 
-                <ion-icon aria-hidden="true" slot="start" [name]="p.icon" style="color: #333; margin-right: 15px; font-size: 20px;"></ion-icon>
-                <ion-label style="color: #333; font-weight: 500; font-size: 16px;">
+                <ion-icon aria-hidden="true" slot="start" [name]="p.icon" class="menu-icon-custom"></ion-icon>
+                <ion-label class="menu-label-custom">
                   {{ p.title }}
                 </ion-label>
               </ion-item>
@@ -22,6 +23,7 @@
             
           </ion-list>
         </div>
+
       </ion-content>
     </ion-menu>
 

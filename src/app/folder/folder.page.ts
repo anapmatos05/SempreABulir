@@ -3,7 +3,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NavController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
-import { DataService, NovoPrazo } from '../services/data'; 
+import { DataService, NovoPrazo } from '../services/data';
+import { AuthService } from '../services/auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-folder',
@@ -31,6 +33,10 @@ export class FolderPage implements OnInit {
   // Estrutura de dados temporária para criação de grupos
   public novoGrupo: any = { nome: '', disciplina: '', membros: ['Ana Matos'] };
   public novoMembroNome: string = '';
+  
+  // Variáveis de autenticação
+  public userDisplayName: string = '';
+  public userEmail: string = '';
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -38,7 +44,8 @@ export class FolderPage implements OnInit {
     private fb: FormBuilder,
     private navCtrl: NavController,
     private router: Router,
-    private storage: Storage
+    private storage: Storage,
+    private authService: AuthService
   ) {
     // Configuração do Formulário Reativo e respetivas validações
     this.prazoForm = this.fb.group({
@@ -59,6 +66,52 @@ export class FolderPage implements OnInit {
       this.folder = idRota.toLowerCase();
       this.gerarSemanaAtual();
     });
+
+    // CORREÇÃO: Removeu-se o take(1) para permitir atualizações em tempo real assim que o Firebase carrega o user
+    this.authService.currentUser$.pipe(
+      filter(user => user !== null && user !== undefined)
+    ).subscribe(user => {
+      if (user?.displayName && user.displayName.trim() !== '') {
+        this.userDisplayName = user.displayName;
+      } else if (user?.email) {
+        // Fallback: Se não houver displayName, usa a parte antes do '@' do email
+        this.userDisplayName = user.email.split('@')[0];
+      } else {
+        this.userDisplayName = 'Utilizador';
+      }
+
+      if (user?.email) {
+        this.userEmail = user.email;
+      }
+    });
+  }
+
+  // ==========================================
+  // GESTÃO DE AUTENTICAÇÃO E PERFIL
+  // ==========================================
+
+  async fazerLogout() {
+    try {
+      await this.authService.logout();
+      this.router.navigateByUrl('/login', { replaceUrl: true });
+    } catch (error) {
+      console.error('Erro ao efetuar logout na FolderPage:', error);
+    }
+  }
+
+  openProfile() {
+    this.navCtrl.navigateForward('/profile');
+  }
+
+  async copyEmail() {
+    try {
+      if (this.userEmail) {
+        await navigator.clipboard.writeText(this.userEmail);
+        console.log('Email copiado com sucesso:', this.userEmail);
+      }
+    } catch (e) {
+      console.error('Erro ao copiar email:', e);
+    }
   }
 
   // ==========================================
@@ -69,7 +122,6 @@ export class FolderPage implements OnInit {
   get listaGrupos(): any[] { return this.dataService.listaGrupos; }
   get listaDisciplinasUnicas(): string[] { return this.dataService.listaDisciplinasJSON || []; }
 
-  // Sincroniza o estado atual das listas com o armazenamento local do dispositivo
   salvarDados() {
     this.storage.set('meus_prazos', this.dataService.listaDePrazos);
     this.storage.set('meus_grupos', this.dataService.listaGrupos);
@@ -91,13 +143,11 @@ export class FolderPage implements OnInit {
   }
 
   guardarNovoGrupo(modal: any) {
-    // Validação de preenchimento obrigatório
     if (this.novoGrupo.nome.trim() === '' || this.novoGrupo.disciplina.trim() === '') {
       alert('Por favor, preencha o Nome do Grupo e a Disciplina.');
       return;
     }
 
-    // Validação de consistência do grupo
     if (this.novoGrupo.membros.length === 0) {
       alert('O grupo não pode estar vazio. Adicione pelo menos um membro.');
       return;
@@ -107,13 +157,13 @@ export class FolderPage implements OnInit {
       nome: this.novoGrupo.nome,
       disciplina: this.novoGrupo.disciplina,
       membros: [...this.novoGrupo.membros],
-      tarefas: [] 
+      subtarefas: [],
+      progresso: 0
     };
 
-    this.dataService.adicionarGrupo(grupoParaGravar); 
+    this.dataService.adicionarGrupo(grupoParaGravar);
     this.salvarDados(); 
     
-    // Reposição do estado inicial para futuras criações
     this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
     modal.dismiss();
   }
@@ -123,15 +173,43 @@ export class FolderPage implements OnInit {
     this.salvarDados();
   }
 
-  obterIniciais(nome: string): string {
-    const partes = nome.trim().split(' ');
+  obterIniciais(nome: string | any): string {
+    const valor = typeof nome === 'string' ? nome : nome?.nome ?? '';
+    const partes = valor.trim().split(' ');
+    if (partes.length === 0 || partes[0] === '') return 'U';
     if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
     return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
   }
 
+  obterNomeMembro(membro: any): string {
+    return typeof membro === 'string' ? membro : membro?.nome ?? '';
+  }
+
+  obterListaNomesMembros(grupo: any): string {
+    if (!grupo?.membros || grupo.membros.length === 0) {
+      return 'Sem membros';
+    }
+    return grupo.membros.map((m: any) => this.obterNomeMembro(m)).join(', ');
+  }
+
   abrirGrupo(nomeDoGrupo: string) {
-    // Navegação com passagem de parâmetros através do Angular Router
     this.router.navigate(['/detalhe-grupo', nomeDoGrupo]);
+  }
+
+  obterProgressoGrupo(grupo: any): number {
+    const tarefas = grupo?.subtarefas ?? grupo?.tarefas ?? [];
+    if (!grupo || tarefas.length === 0) {
+      return 0;
+    }
+    const concluido = tarefas.filter((t: any) => t.concluida).length;
+    return Math.round((concluido / tarefas.length) * 100);
+  }
+
+  obterTextoTarefasGrupo(grupo: any): string {
+    const tarefas = grupo?.subtarefas ?? grupo?.tarefas ?? [];
+    const total = tarefas.length;
+    const concluido = tarefas.filter((t: any) => t.concluida).length;
+    return `${concluido}/${total}`;
   }
 
   // ==========================================
@@ -150,10 +228,8 @@ export class FolderPage implements OnInit {
     return this.listaDePrazos.filter(p => !this.prazoJaExpirou(p.data, p.hora) && p.estado !== 'Concluída').length;
   }
 
-  // Motor de filtragem combinada: Pesquisa textual, Disciplina, Estado e Tempo
   get tarefasFiltradas(): NovoPrazo[] {
     return this.listaDePrazos.filter(tarefa => {
-      
       const correspondePesquisa = tarefa.titulo.toLowerCase().includes(this.termoPesquisa.toLowerCase()) || 
                                   (tarefa.descricao && tarefa.descricao.toLowerCase().includes(this.termoPesquisa.toLowerCase()));
       
@@ -208,41 +284,87 @@ export class FolderPage implements OnInit {
     return `${diferencaDias} dias`;
   }
 
-  /** Retorna a cor do ponto do calendário para uma tarefa específica.
-   *  Regras:
-   *  - Vermelho: expirado (prazo já passou e não concluída)
-   *  - Laranja: perto do prazo (<= 2 dias e não concluída)
-   *  - Azul: tarefa pertence a um grupo (detecta propriedade `grupo` ou presença em `listaGrupos`)
-   *  - Caso contrário: cor por disciplina (mantenho lógica existente)
-   */
-  getDotColor(tarefa: any): string {
-    if (!tarefa) return '#651fff';
-
-    // Verificar se expirou (considerando hora se disponível)
-    const hora = tarefa.hora || '23:59';
-    const dataPrazoComHora = new Date(`${tarefa.data}T${hora}`);
-    const agora = new Date();
-    if (tarefa.estado !== 'Concluída' && dataPrazoComHora < agora) return '#d32f2f';
-
-    // Verificar proximidade (<= 2 dias)
+  obterDiasRestantesDias(dataString: string): number {
     const hoje = new Date();
     hoje.setHours(0,0,0,0);
-    const dataPrazo = new Date(tarefa.data);
-    dataPrazo.setHours(0,0,0,0);
-    const diffDias = Math.ceil((dataPrazo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
-    if (tarefa.estado !== 'Concluída' && diffDias <= 2) return '#ff9100';
+    const dataEntrega = new Date(dataString);
+    dataEntrega.setHours(0,0,0,0);
+    return Math.round((dataEntrega.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+  }
 
-    // Detectar tarefa de grupo: propriedade explícita ou presença no array de tarefas do grupo
-    if ((tarefa as any).grupo) return '#2196F3';
-    if (this.listaGrupos && this.listaGrupos.some(g => g.tarefas && g.tarefas.some((gt: any) => gt.titulo === tarefa.titulo))) {
-      return '#2196F3';
+  obterEstiloPrazoTarefa(tarefa: any): { background: string; border: string; text: string; labelBg: string; labelColor: string; status: string } {
+    if (tarefa.estado === 'Concluída') {
+      return {
+        background: '#f8fafc',
+        border: '1px solid #e2e8f0',
+        text: '#64748b',
+        labelBg: '#e2e8f0',
+        labelColor: '#475569',
+        status: 'Concluída'
+      };
     }
 
-    // Fallback por disciplina (mantendo cores anteriores)
-    if (tarefa.disciplina?.includes('Operativos') || tarefa.disciplina === 'SO') return '#d32f2f';
-    if (tarefa.disciplina?.includes('Redes') || tarefa.disciplina === 'REDSIS') return '#ff9100';
+    const dias = this.obterDiasRestantesDias(tarefa.data);
+    if (dias < 0) {
+      return {
+        background: '#fff5f5',
+        border: '1px solid #ffc9c9',
+        text: '#b91c1c',
+        labelBg: '#fee2e2',
+        labelColor: '#991b1b',
+        status: 'Atrasada'
+      };
+    }
+    if (dias === 0) {
+      return {
+        background: '#fff5f5',
+        border: '1px solid #fca5a5',
+        text: '#b91c1c',
+        labelBg: '#fecaca',
+        labelColor: '#7f1d1d',
+        status: 'Hoje'
+      };
+    }
+    if (dias === 1) {
+      return {
+        background: '#fff7ed',
+        border: '1px solid #fbcf89',
+        text: '#9a3412',
+        labelBg: '#fde68a',
+        labelColor: '#92400e',
+        status: 'Amanhã'
+      };
+    }
+    return {
+      background: '#ecfdf5',
+      border: '1px solid #86efac',
+      text: '#166534',
+      labelBg: '#bbf7d0',
+      labelColor: '#166534',
+      status: `${dias} dias`
+    };
+  }
 
-    return '#651fff';
+  obterCorBolaPrazo(tarefa: any): string {
+    if (tarefa.estado === 'Concluída') {
+      return '#b0b0b0';
+    }
+    const dias = this.obterDiasRestantesDias(tarefa.data);
+    if (dias < 0 || dias === 0) {
+      return '#b91c1c';
+    }
+    if (dias === 1) {
+      return '#f59e0b';
+    }
+    return '#16a34a';
+  }
+
+  getDotColor(tarefa: any): string {
+    if (!tarefa || tarefa.estado === 'Concluída') return '#b0b0b0';
+    const dias = this.obterDiasRestantesDias(tarefa.data);
+    if (dias < 0 || dias === 0) return '#b91c1c';
+    if (dias === 1) return '#f59e0b';
+    return '#16a34a';
   }
 
   guardarNovoPrazo(modal: any) {
@@ -289,8 +411,6 @@ export class FolderPage implements OnInit {
   
   get tarefasDoDiaSelecionado(): any[] {
     if (!this.dataSelecionadaCalendario) return [];
-    
-    // Extrai unicamente a data (YYYY-MM-DD) da string ISO
     const dataLimpa = this.dataSelecionadaCalendario.split('T')[0];
     return this.listaDePrazos.filter(tarefa => tarefa.data === dataLimpa);
   }
@@ -307,14 +427,9 @@ export class FolderPage implements OnInit {
 
   get proximaTarefaAgendada(): any[] {
     const dataCalendario = this.dataSelecionadaCalendario.split('T')[0];
+    const futuras = this.listaDePrazos.filter(t => t.estado !== 'Concluída' && t.data > dataCalendario);
     
-    const futuras = this.listaDePrazos.filter(t => 
-      t.estado !== 'Concluída' && t.data > dataCalendario
-    );
-    
-    // Ordenação cronológica ascendente
     futuras.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
-    
     return futuras.length > 0 ? [futuras[0]] : [];
   }
 
@@ -330,7 +445,6 @@ export class FolderPage implements OnInit {
       const prazosDoDia = this.listaDePrazos.filter(prazo => {
         if (!prazo.data) return false;
         
-        // Desconstrução manual da data para prevenir discrepâncias de timezone
         const partes = prazo.data.split('T')[0].split('-'); 
         const ano = parseInt(partes[0], 10);
         const mes = parseInt(partes[1], 10) - 1; 
@@ -355,7 +469,7 @@ export class FolderPage implements OnInit {
   }
 
   gerarSemanaAtual() {
-    // Método mantido para futura expansão da lógica de paginação semanal
+    // Mantido para compatibilidade
   }
 
   private isMesmoDia(data1: Date, data2: Date): boolean {

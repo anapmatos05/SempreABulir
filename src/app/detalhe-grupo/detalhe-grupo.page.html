@@ -71,12 +71,12 @@
     <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px;">
       <div *ngFor="let tarefa of grupoDetalhado.subtarefas" 
            (click)="alterarEstadoSubtarefa(tarefa)"
-           [style.background]="tarefa.concluida ? '#f0fdf4' : '#ffffff'" 
-           [style.border]="tarefa.concluida ? '1px solid #bbf7d0' : '1px solid #e0e0e0'"
+           [style.background]="obterCorPrazo(tarefa.data, tarefa.concluida).background" 
+           [style.border]="obterCorPrazo(tarefa.data, tarefa.concluida).border"
            style="border-radius: 8px; padding: 12px; display: flex; align-items: center; cursor: pointer;">
         
         <ion-icon [name]="tarefa.concluida ? 'checkmark-circle' : 'ellipse-outline'" 
-                  [style.color]="tarefa.concluida ? '#16a34a' : '#b0b0b0'" 
+                  [style.color]="tarefa.concluida ? '#16a34a' : obterCorPrazo(tarefa.data, tarefa.concluida).text" 
                   style="font-size: 22px; margin-right: 12px;"></ion-icon>
 
         <div style="flex: 1;">
@@ -85,9 +85,16 @@
                style="font-size: 14px; font-weight: 600; margin-bottom: 2px;">
             {{ tarefa.titulo }}
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #666; gap: 10px; flex-wrap: wrap;">
             <span><ion-icon name="person-outline" style="vertical-align: middle;"></ion-icon> {{ tarefa.responsavel }}</span>
-            <span>{{ tarefa.data | date:'dd/MM/yyyy' }}</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>{{ tarefa.data | date:'dd/MM/yyyy' }}</span>
+              <span [style.background]="obterCorPrazo(tarefa.data, tarefa.concluida).labelBg"
+                    [style.color]="obterCorPrazo(tarefa.data, tarefa.concluida).labelColor"
+                    style="padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700; white-space: nowrap;">
+                {{ obterTextoPrazo(tarefa.data, tarefa.concluida) }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -96,25 +103,91 @@
     <h2 style="font-size: 16px; font-weight: bold; color: #000; margin: 0 0 15px 0;">Membros do Grupo</h2>
     <div style="display: flex; flex-wrap: wrap; gap: 15px;">
       <div *ngFor="let membro of grupoDetalhado.membros" style="border: 1px solid #e0e0e0; background: #ffffff; padding: 10px; border-radius: 8px; flex: 1; min-width: 140px; display: flex; align-items: center;">
-        <div style="background: var(--ion-color-amarelo-academico); color: #000; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; margin-right: 12px;">
-          {{ obterIniciais(membro.nome) }}
+        <div style="background: #f4c20d; color: #000; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; margin-right: 12px;">
+          {{ obterIniciais(membro) }}
         </div>
         <div style="display: flex; flex-direction: column; overflow: hidden;">
-          <span style="font-size: 14px; color: #000; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ membro.nome }}</span>
-          <span style="font-size: 11px; color: #8c8c8c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ membro.email }}</span>
+          <span style="font-size: 14px; color: #000; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ membro?.nome ?? membro }}</span>
+          <span style="font-size: 11px; color: #8c8c8c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ membro?.email ?? '' }}</span>
         </div>
       </div>
     </div>
   </div>
 
-  <div *ngIf="abaAtiva === 'chat'" style="text-align: center; padding: 40px; color: #8c8c8c;">
-    <ion-icon name="chatbubbles-outline" style="font-size: 48px; margin-bottom: 10px; color: #e0e0e0;"></ion-icon>
-    <p style="margin: 0; font-size: 15px;">A sala de chat da equipa aparecerá aqui.</p>
+  <div *ngIf="abaAtiva === 'chat'" style="display: flex; flex-direction: column; height: 350px;">
+    <div style="flex: 1; overflow-y: auto; padding: 12px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px;">
+      <div *ngIf="conversaGrupo.length === 0" style="text-align: center; color: #8c8c8c; padding-top: 80px;">
+        <ion-icon name="chatbubbles-outline" style="font-size: 42px; margin-bottom: 12px; color: #d4d4d4;"></ion-icon>
+        <p style="margin: 0; font-size: 14px;">Sem conversas ainda. Escreve abaixo para começar.</p>
+      </div>
+
+      <div *ngFor="let mensagem of conversaGrupo" style="margin-bottom: 15px; text-align: left;" [ngStyle]="{ 'text-align': mensagem.deMim ? 'right' : 'left' }">
+        <div *ngIf="!mensagem.deMim" style="margin-bottom: 4px; color: #666; font-size: 12px; font-weight: 600;">{{ mensagem.autor }}</div>
+        <div [style.background]="mensagem.deMim ? '#000000' : '#f1f1f1'"
+             [style.color]="mensagem.deMim ? '#ffffff' : '#000000'"
+             style="display: inline-block; padding: 12px 14px; border-radius: 16px; max-width: 80%; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+          {{ mensagem.texto }}
+        </div>
+        <div style="font-size: 10px; color: #999; margin-top: 4px;">{{ mensagem.horario }}</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <span style="font-size: 12px; color: #666; font-weight: 600;">Enviar como:</span>
+        <div *ngFor="let autor of autoresChat" 
+             (click)="autorMensagem = autor"
+             [style.background]="autorMensagem === autor ? '#000' : '#f1f1f1'"
+             [style.color]="autorMensagem === autor ? '#fff' : '#000'"
+             [style.border]="autorMensagem === autor ? '2px solid #000' : '1px solid #e0e0e0'"
+             style="padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+          {{ autor }}
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <input type="text" [(ngModel)]="novaMensagem" (keyup.enter)="enviarMensagem()" placeholder="Escrever mensagem..." style="flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid #ccc; background: #ffffff; color: #000; font-size: 14px;" />
+      <ion-button [disabled]="novaMensagem.trim() === ''" (click)="enviarMensagem()" style="--background: #000; --border-radius: 50%; width: 44px; height: 44px; margin: 0;">
+        <ion-icon name="send" style="color: #fff; font-size: 16px;"></ion-icon>
+      </ion-button>
+    </div>
   </div>
 
-  <div *ngIf="abaAtiva === 'ficheiros'" style="text-align: center; padding: 40px; color: #8c8c8c;">
-    <ion-icon name="document-text-outline" style="font-size: 48px; margin-bottom: 10px; color: #e0e0e0;"></ion-icon>
-    <p style="margin: 0; font-size: 15px;">Os ficheiros partilhados do projeto aparecerão aqui.</p>
+  <div *ngIf="abaAtiva === 'ficheiros'">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; gap: 12px; flex-wrap: wrap;">
+      <div>
+        <h2 style="font-size: 16px; font-weight: bold; color: #000; margin: 0 0 8px 0;">Ficheiros Partilhados</h2>
+        <p style="margin: 0; font-size: 13px; color: #666;">Carrega documentos e partilha com a equipa.</p>
+      </div>
+      <button (click)="adicionarFicheiro()" style="background: #f4c20d; color: #000; border: none; border-radius: 10px; padding: 10px 16px; font-weight: bold; cursor: pointer;">Adicionar Ficheiro</button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+      <input type="text" [(ngModel)]="novoFicheiroNome" placeholder="Nome do ficheiro" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #000;" />
+      <input type="text" [(ngModel)]="novoFicheiroAutor" placeholder="Autor (ex: Ana Matos)" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #000;" />
+      <input type="date" [(ngModel)]="novoFicheiroData" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #000;" />
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div *ngFor="let ficheiro of ficheirosPartilhados" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; overflow: hidden; margin-right: 10px; gap: 12px;">
+          <ion-icon [name]="ficheiro.nome.endsWith('.pdf') ? 'document-text' : 'document'" style="color: #3880ff; font-size: 28px; flex-shrink: 0;"></ion-icon>
+          <div style="display: flex; flex-direction: column; overflow: hidden;">
+            <span style="font-size: 14px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ ficheiro.nome }}</span>
+            <span style="font-size: 12px; color: #666;">{{ ficheiro.autor }} • {{ ficheiro.data | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <ion-button fill="clear" size="small" style="--color: #000; font-weight: bold; text-transform: none;" (click)="baixarFicheiro(ficheiro)">
+            Baixar
+          </ion-button>
+          <ion-button fill="clear" size="small" style="--color: #d32f2f; font-weight: bold; text-transform: none;" (click)="removerFicheiro(ficheiro)">
+            Apagar
+          </ion-button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <ion-modal #modalSubtarefa [initialBreakpoint]="0.5" [breakpoints]="[0, 0.5]">
@@ -138,7 +211,7 @@
           <div>
             <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000; font-size: 14px;">Responsável</label>
             <ion-select [(ngModel)]="novaSubtarefa.responsavel" interface="popover" placeholder="Selecionar Membro..." style="width: 100%; --min-width: 0;">
-              <ion-select-option *ngFor="let membro of grupoDetalhado.membros" [value]="membro.nome">{{ membro.nome }}</ion-select-option>
+              <ion-select-option *ngFor="let membro of grupoDetalhado.membros" [value]="membro?.nome ?? membro">{{ membro?.nome ?? membro }}</ion-select-option>
             </ion-select>
           </div>
           <div>
@@ -183,7 +256,7 @@
             <label style="font-weight: 500; display: block; margin-bottom: 5px; color: #000; font-size: 14px;">Adicionar Membro</label>
             <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
               <input type="text" [(ngModel)]="novoMembroNome" placeholder="Nome completo" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e0e0e0; background: #ffffff; color: #000;" />
-              <ion-button expand="block" (click)="adicionarMembroEdicao()" style="--background: var(--ion-color-amarelo-academico); --color: #000; --border-radius: 10px; margin: 0; font-weight: bold;">
+              <ion-button expand="block" (click)="adicionarMembroEdicao()" style="--background: #f4c20d; --color: #000; --border-radius: 10px; margin: 0; font-weight: bold;">
                 ADICIONAR
               </ion-button>
             </div>
