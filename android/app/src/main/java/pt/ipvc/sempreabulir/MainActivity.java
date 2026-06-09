@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package pt.ipvc.sempreabulir;
 
 import com.getcapacitor.BridgeActivity;
 
