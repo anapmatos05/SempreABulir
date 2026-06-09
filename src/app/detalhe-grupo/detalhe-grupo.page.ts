@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { DataService } from '../services/data';
+import { GrupoService } from '../services/grupo';
 
 @Component({
   selector: 'app-detalhe-grupo',
@@ -13,6 +14,7 @@ export class DetalheGrupoPage implements OnInit {
   // Variáveis de controlo da interface e abas
   public nomeDoGrupo: string = '';
   public abaAtiva: string = 'subtarefas'; // Controla qual a aba visível (subtarefas, chat ou ficheiros)
+  public grupoIdFirebase: string = '';
   
   // Base de dados simulada (Mock Data) do grupo - Conforme o teu Storyboard
   public grupoDetalhado: any = {
@@ -55,24 +57,34 @@ export class DetalheGrupoPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private navCtrl: NavController,
-    private dataService: DataService
+    private dataService: DataService,
+    private grupoService: GrupoService
   ) { }
 
   ngOnInit() {
-    // Captura o nome do grupo enviado pela rota/URL da página anterior
-    const nomeRecebido = this.route.snapshot.paramMap.get('nome');
-    if (nomeRecebido) {
-      this.nomeDoGrupo = nomeRecebido;
-      const grupo = this.dataService.obterGrupoPorNome(nomeRecebido);
-      if (grupo) {
-        this.grupoDetalhado = grupo;
-        this.grupoDetalhado.subtarefas = this.grupoDetalhado.subtarefas ?? this.grupoDetalhado.tarefas ?? [];
-        this.grupoDetalhado.progresso = this.grupoDetalhado.progresso ?? 0;
-        this.grupoDetalhado.membros = this.normalizarMembros(this.grupoDetalhado.membros ?? []);
-        this.atualizarAutoresChat();
-      } else {
-        this.grupoDetalhado.nome = nomeRecebido;
-      }
+    // 1. Em vez do nome, vamos tentar apanhar o ID único do grupo
+    const idRecebido = this.route.snapshot.paramMap.get('id') || this.route.snapshot.paramMap.get('nome');
+    
+    if (idRecebido) {
+      this.grupoIdFirebase = idRecebido;
+
+      // 2. Ligar a "antena" aos detalhes do grupo na Nuvem
+      this.grupoService.getDetalhesGrupo(this.grupoIdFirebase).subscribe(grupoCloud => {
+        if (grupoCloud) {
+          this.nomeDoGrupo = grupoCloud.nome;
+          this.grupoDetalhado = grupoCloud;
+          this.grupoDetalhado.progresso = this.grupoDetalhado.progresso ?? 0;
+          this.grupoDetalhado.membros = this.normalizarMembros(this.grupoDetalhado.membros ?? []);
+          this.atualizarAutoresChat();
+        }
+      });
+
+      // 3. Ligar a "antena" às subtarefas em TEMPO REAL!
+      this.grupoService.getSubtarefas(this.grupoIdFirebase).subscribe(tarefasCloud => {
+        // Sempre que a Ana ou tu adicionarem uma tarefa, isto corre sozinho
+        this.grupoDetalhado.subtarefas = tarefasCloud;
+        this.atualizarProgresso(); // A tua função de matemática recalcula a barra!
+      });
     }
   }
 
@@ -163,15 +175,21 @@ export class DetalheGrupoPage implements OnInit {
   // Guarda a nova subtarefa e atualiza o progresso do grupo na hora
   async guardarSubtarefa(modal: any) {
     if (this.novaSubtarefa.titulo.trim().length > 0) {
-      this.grupoDetalhado.subtarefas.push({
+      
+      // Cria o objeto exatamente como tinhas
+      const dadosDaNovaTarefa = {
         titulo: this.novaSubtarefa.titulo,
         responsavel: this.novaSubtarefa.responsavel || 'Por atribuir',
         data: this.novaSubtarefa.data || new Date().toISOString().split('T')[0],
         concluida: false
-      });
+      };
       
-      this.atualizarProgresso(); // Recalcula a barra de progresso
-      await this.dataService.salvarGrupos();
+      // Envia para o Firebase através do teu novo serviço!
+      await this.grupoService.adicionarSubtarefa(this.grupoIdFirebase, dadosDaNovaTarefa);
+      
+      // Já não precisas de fazer .push() nem calcular progresso aqui, 
+      // porque o Firebase vai avisar o ngOnInit que há uma tarefa nova e ele faz isso sozinho!
+      
       modal.dismiss();
     }
   }
