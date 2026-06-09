@@ -9,11 +9,15 @@ import { AppRoutingModule } from './app-routing.module';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { HttpClientModule } from '@angular/common/http';
 
-// Firebase
+// Firebase (A configuração da tua colega - Versão Compat)
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { firebaseConfig } from '../environments/firebase.config';
+
+// Firebase (A nossa configuração - Versão Modular)
+import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 
 /**
  * Módulo raiz da aplicação (AppModule).
@@ -21,21 +25,29 @@ import { firebaseConfig } from '../environments/firebase.config';
  * em toda a aplicação (persistência, chamadas HTTP e roteamento).
  */
 @NgModule({
-  declarations: [AppComponent], // Declaração do componente principal
+  declarations: [AppComponent],
   imports: [
-    BrowserModule,              // Módulo necessário para correr a app num browser
-    IonicModule.forRoot(),      // Inicialização global do framework Ionic
-    AppRoutingModule,           // Configuração de rotas definida no AppRoutingModule
-    IonicStorageModule.forRoot(), // Módulo global para o armazenamento local (Base de Dados)
-    HttpClientModule,           // Módulo global para realizar chamadas HTTP (leitura de JSON)
+    BrowserModule,
+    IonicModule.forRoot(),
+    AppRoutingModule,
+    IonicStorageModule.forRoot(),
+    HttpClientModule,
+    
+    // Inicialização do Firebase da Ana
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFireAuthModule,
     AngularFirestoreModule
   ],
+
   providers: [
-    // Define a estratégia de reutilização de rotas do Ionic para melhor performance
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    
+    // O "Chassi" Moderno do Firebase:
+    provideFirebaseApp(() => initializeApp(firebaseConfig)),
+    
+    // O "Motor" Moderno da Base de Dados:
+    provideFirestore(() => getFirestore())
   ],
-  bootstrap: [AppComponent], // Define o componente raiz que inicia a aplicação
+  bootstrap: [AppComponent],
 })
 export class AppModule {}

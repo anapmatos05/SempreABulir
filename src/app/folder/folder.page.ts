@@ -6,6 +6,7 @@ import { Storage } from '@ionic/storage-angular';
 import { DataService, NovoPrazo } from '../services/data';
 import { AuthService } from '../services/auth.service';
 import { filter } from 'rxjs/operators';
+import { GrupoService } from '../services/grupo';
 
 @Component({
   selector: 'app-folder',
@@ -41,6 +42,7 @@ export class FolderPage implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private dataService: DataService,
+    private grupoService: GrupoService,
     private fb: FormBuilder,
     private navCtrl: NavController,
     private router: Router,
@@ -142,7 +144,7 @@ export class FolderPage implements OnInit {
     this.novoGrupo.membros.splice(index, 1);
   }
 
-  guardarNovoGrupo(modal: any) {
+  async guardarNovoGrupo(modal: any) {
     if (this.novoGrupo.nome.trim() === '' || this.novoGrupo.disciplina.trim() === '') {
       alert('Por favor, preencha o Nome do Grupo e a Disciplina.');
       return;
@@ -153,19 +155,28 @@ export class FolderPage implements OnInit {
       return;
     }
 
+    // Prepara o pacote para a Nuvem
     const grupoParaGravar = {
       nome: this.novoGrupo.nome,
       disciplina: this.novoGrupo.disciplina,
       membros: [...this.novoGrupo.membros],
-      subtarefas: [],
-      progresso: 0
+      progresso: 0,
+      criadoEm: new Date().toISOString()
+      // Removido o 'subtarefas: []' daqui porque no Firebase as subtarefas 
+      // vão viver na sua própria subcoleção (como vimos no detalhe-grupo)
     };
 
-    this.dataService.adicionarGrupo(grupoParaGravar);
-    this.salvarDados(); 
-    
-    this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
-    modal.dismiss();
+    try {
+      // Dispara para o Firebase!
+      await this.grupoService.criarGrupo(grupoParaGravar);
+      
+      // Limpa o formulário e fecha o modal
+      this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
+      modal.dismiss();
+    } catch (erro) {
+      console.error('Erro ao criar grupo no Firebase:', erro);
+      alert('Ocorreu um erro ao guardar o grupo na nuvem.');
+    }
   }
 
   apagarGrupo(grupoParaApagar: any) {
@@ -192,8 +203,11 @@ export class FolderPage implements OnInit {
     return grupo.membros.map((m: any) => this.obterNomeMembro(m)).join(', ');
   }
 
-  abrirGrupo(nomeDoGrupo: string) {
-    this.router.navigate(['/detalhe-grupo', nomeDoGrupo]);
+  abrirGrupo(grupo: any) {
+    // O Firebase adiciona automaticamente um '.id' único a cada documento.
+    // Usamos esse ID para abrir os detalhes certos. Se não existir (dados antigos locais), usa o nome.
+    const identificador = grupo.id || grupo.nome; 
+    this.router.navigate(['/detalhe-grupo', identificador]);
   }
 
   obterProgressoGrupo(grupo: any): number {
@@ -210,6 +224,48 @@ export class FolderPage implements OnInit {
     const total = tarefas.length;
     const concluido = tarefas.filter((t: any) => t.concluida).length;
     return `${concluido}/${total}`;
+  }
+
+  // ==========================================
+  // PESQUISA DE MEMBROS (NOVO)
+  // ==========================================
+  public resultadosPesquisa: any[] = [];
+
+  // Esta função corre sempre que escreves uma letra no input
+  async pesquisarMembros() {
+    const termo = this.novoMembroNome.trim();
+    
+    if (termo.length < 2) {
+      // Se tiver menos de 2 letras, limpa a lista para não sobrecarregar a base de dados
+      this.resultadosPesquisa = [];
+      return;
+    }
+
+    try {
+      this.resultadosPesquisa = await this.grupoService.procurarUtilizadores(termo);
+      console.log("O Firebase encontrou:", this.resultadosPesquisa);
+    } catch (erro) {
+      console.error('Erro ao procurar utilizadores:', erro);
+    }
+  }
+
+  // Esta função corre quando clicas no nome da pessoa na lista suspensa
+  selecionarMembro(utilizadorEncontrado: any) {
+    // Verifica se já está no grupo para não haver repetidos
+    const jaExiste = this.novoGrupo.membros.find((m: any) => m.id === utilizadorEncontrado.id);
+    
+    if (!jaExiste) {
+      // Guarda o objeto inteiro da pessoa (com ID e Email) em vez de apenas o nome!
+      this.novoGrupo.membros.push({
+        id: utilizadorEncontrado.id,
+        nome: utilizadorEncontrado.nome,
+        email: utilizadorEncontrado.email
+      });
+    }
+    
+    // Limpa a pesquisa
+    this.novoMembroNome = '';
+    this.resultadosPesquisa = [];
   }
 
   // ==========================================
