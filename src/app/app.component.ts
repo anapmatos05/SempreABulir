@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { Platform } from '@ionic/angular';
+import { Platform, PopoverController } from '@ionic/angular';
+import { Router, NavigationEnd } from '@angular/router';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Capacitor } from '@capacitor/core';
-// Importação necessária para manipular a barra de topo (notificações e bateria)
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { filter } from 'rxjs/operators';
 
 /**
  * Componente raiz da aplicação.
@@ -18,41 +19,36 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 })
 export class AppComponent {
   
-  // Definição das páginas acessíveis através do menu lateral
   public appPages = [
     { title: 'Calendário', url: '/folder/calendario', icon: 'calendar' },
     { title: 'Tarefas', url: '/folder/tarefas', icon: 'checkbox' },
     { title: 'Grupos', url: '/folder/grupos', icon: 'people' }
   ];
 
-  constructor(private platform: Platform) {
-    if (Capacitor.isNativePlatform()) {
-      // Diz ao sistema para a app não se esconder atrás da barra
-      StatusBar.setOverlaysWebView({ overlay: false });
-      // Pinta a barra do teu Amarelo
-      StatusBar.setBackgroundColor({ color: '#f4c20d' });
-      // Coloca os ícones (horas e bateria) a preto para se conseguirem ler
-      StatusBar.setStyle({ style: Style.Light });
-    }
+  constructor(
+    private platform: Platform,
+    private router: Router,
+    private popoverCtrl: PopoverController
+  ) {
+    this.iniciarApp();
+    this.ouvirMudancasDeRota();
   }
 
   /**
    * Configuração de inicialização da aplicação:
    * 1. Aguarda que a plataforma Ionic esteja totalmente carregada.
    * 2. Bloqueia a orientação do ecrã para 'Portrait' se correr em ambiente nativo.
-   * 3. Configura a Barra de Estado para não se sobrepor à aplicação e ter fundo amarelo.
+   * 3. Configura a Barra de Estado para não se sobrepor à aplicação e ter o fundo amarelo.
    */
   async iniciarApp() {
     await this.platform.ready();
     
-    // Verificação de ambiente para garantir execução apenas em dispositivos móveis (Capacitor)
     if (this.platform.is('capacitor')) {
       
       // BLOCO 1: Orientação do Ecrã
       try {
         await ScreenOrientation.lock({ orientation: 'portrait' });
       } catch (error) {
-        // Log para ambiente de desenvolvimento (browser ignora o bloqueio)
         console.log('A rotação só é bloqueada em ambiente nativo.');
       }
 
@@ -61,8 +57,8 @@ export class AppComponent {
         // Impede a aplicação de ficar escondida por trás da barra de notificações/câmara
         await StatusBar.setOverlaysWebView({ overlay: false });
 
-        // Define a cor de fundo da barra para amarelo (podes ajustar o código HEX se precisares do teu tom exato)
-        await StatusBar.setBackgroundColor({ color: '#FFD700' }); 
+        // Define a cor de fundo da barra para o teu Amarelo Académico
+        await StatusBar.setBackgroundColor({ color: '#f4c20d' }); 
 
         // Como o amarelo é uma cor clara, força a hora e os ícones de bateria a ficarem escuros (Style.Light)
         await StatusBar.setStyle({ style: Style.Light });
@@ -71,5 +67,20 @@ export class AppComponent {
       }
       
     }
+  }
+
+  /**
+   * INTERCEPTOR GLOBAL: Fecha qualquer popover automaticamente sempre que mudas de página
+   */
+  private ouvirMudancasDeRota() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(async () => {
+      // Procura se existe algum popover ativo na aplicação e fecha-o imediatamente
+      const popoverAtivo = await this.popoverCtrl.getTop();
+      if (popoverAtivo) {
+        await this.popoverCtrl.dismiss();
+      }
+    });
   }
 }
