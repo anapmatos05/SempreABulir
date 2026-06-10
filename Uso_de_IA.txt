@@ -1,27 +1,29 @@
 Declaração de Utilização de IA - Projeto Final IHM
 
-1. Trabalho realizado com esforço Humano (Sem IA):
+1. Trabalho realizado com esforço Humano (Sem geração de código por IA):
 
-- Idealização e design da interface do utilizador (UI).
+Conceção e Requisitos: Idealização do projeto, definição das regras de negócio e planeamento das funcionalidades a desenvolver (Calendário, Grupos, Chat, Tarefas).
 
-- Lógica base de navegação visual, estrutura de variáveis de apresentação (Prazos, Grupos) e Formulários Reativos (Reactive Forms).
+Design de Interface (UI/UX): Criação dos protótipos visuais e fluxos de navegação que serviram de base para as instruções dadas à IA.
 
-- Criação do ficheiro JSON com as opções das disciplinas.
+Dados e Estrutura Base: Criação manual do ficheiro JSON base com as opções das disciplinas.
+
+Engenharia de Prompts e Revisão: Formulação detalhada das instruções (prompts), explicação da lógica desejada e revisão do código gerado para garantir que cumpria os objetivos do projeto.
+
+Integração, Versionamento e Testes: Gestão do repositório (Git/GitHub), resolução de conflitos de merge, montagem dos componentes no ambiente de desenvolvimento (VS Code / Android Studio) e testes exaustivos de usabilidade.
 
 2. Trabalho realizado com recurso a Modelos de IA (Gemini):
 
-- Construção de toda a estrutura HTML dos ecrãs (Tabs principais, detalhes de grupos e modais)[ Sempre revisado por humanos ].
+Geração de Código Core (TypeScript): A IA foi responsável por escrever a esmagadora maioria da lógica de negócio nos componentes e serviços Angular (manipulação de arrays, lógica de cálculo de progresso de tarefas, etc.).
 
-- Estilização avançada utilizando CSS/SCSS (cores académicas, tipografia, margens e ícones) [ Sempre revisado por humanos ].
+Estrutura e Estilização (HTML/SCSS): Construção integral de todas as views (Tabs principais, páginas de detalhes, Modais, Pop-overs) e respetiva aplicação de estilos avançados (cores, tipografia, responsividade), com base no design fornecido.
 
-- Routing: Apoio na transição da navegação baseada em visualização (*ngIf) para o sistema de rotas nativo do Angular (Angular Router e ActivatedRoute), permitindo a passagem do nome do grupo como parâmetro no URL.
+Backend e Autenticação (Firebase): Arquitetura e implementação de toda a comunicação com a nuvem (Firestore e Auth). Inclui a leitura/escrita de dados e a configuração de subscrições em tempo real para sincronização do Chat, Ficheiros e Tarefas entre múltiplos utilizadores.
 
-- Ionic Storage: Assistência na configuração do serviço de base de dados local (@ionic/storage-angular) e na lógica de persistência de dados (carregar listas no arranque e guardar após alterações) utilizando injeção de dependências no DataService.
+Notificações e Lógica Local: Criação do sistema de notificações dinâmicas (Toasts e Badges), contagem de mensagens não lidas e utilização do localStorage para persistência de dados no dispositivo.
 
-- Consumo de APIs/JSON: Refatorização da leitura do ficheiro local disciplinas.json, transitando do uso de fetch nativo para o HttpClient oficial do Angular, incluindo a correção de erros de tipagem de Objetos vs Arrays.
+Routing (Angular Router): Implementação do sistema de rotas dinâmicas, permitindo a transição fluida entre ecrãs e a passagem segura de parâmetros (como o ID dos grupos) nos URLs.
 
-- Capacitor: Geração do código necessário para o bloqueio nativo da orientação do ecrã do dispositivo (modo Portrait) através do plugin @capacitor/screen-orientation.
+Integração Nativa (Capacitor): Geração do código para plugins nativos, nomeadamente o bloqueio da orientação do ecrã do dispositivo (modo Portrait).
 
-- Depuração (Debugging): Apoio na identificação e correção de erros de compilação do Angular (ex: correção do atributo standalone: false nos componentes).
-
-- Comentários
+Depuração Contínua (Debugging): Análise de erros de terminal, correção de falhas de compilação, resolução de bugs visuais (sobreposição de layers, problemas com position: absolute) e estabilização de conflitos lógicos no ciclo de vida do Angular (ngOnInit).

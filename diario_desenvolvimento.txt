@@ -1,0 +1,104 @@
+**Sessão 1 – 21 de maio de 2026**
+Objetivo:
+Setup inicial do projeto, criação da interface base (UI) e implementação da lógica do calendário e tarefas.
+Atividades realizadas:
+
+* Criação do ecrã inicial personalizado com as cores do projeto.
+* Implementação do calendário semanal dinâmico baseado na data atual.
+* Criação do modal para adicionar um novo prazo com formulário completo.
+* Configuração do bloqueio de orientação do ecrã para modo *portrait*.
+* Construção do ecrã de tarefas com lógica de expiração automática de prazos.
+
+Problemas:
+
+* O modal de novo prazo não estava a abrir corretamente após integração.
+* Existência de código duplicado no TypeScript e desalinhamento nos ícones de data/hora.
+
+Solução:
+
+* Refatorização do código para remover duplicados e correção do HTML/CSS, isolando estilos de campos híbridos.
+
+Decisões:
+
+* Optar por isolamento de CSS em componentes específicos em vez de usar uma folha de estilos global para evitar conflitos futuros.
+
+---
+
+**Sessão 2 – 4 de junho de 2026**
+Objetivo:
+Implementação do sistema de grupos, navegação detalhada e persistência de dados local através de ficheiros JSON.
+Atividades realizadas:
+
+* Criação da estrutura de dados e leitura via ficheiro `disciplinas.json`.
+* Desenvolvimento das páginas de listagem e detalhes do grupo.
+* Melhoria da gestão e visualização de tarefas, incluindo filtro por tempo com redirecionamento a partir do calendário.
+* Correções na barra superior e reestruturação do menu inferior de navegação.
+* Adição das plataformas Android e preparação/correções para Android Studio.
+* Documentação formal (criação de ficheiro .txt) para registar o uso de Inteligência Artificial no desenvolvimento.
+
+Problemas:
+
+* Bugs visuais com a funcionalidade de *swipe* do Ionic e falhas na cor da animação ao trocar de abas de navegação.
+* Perda da disciplina selecionada ao tentar visualizar tarefas específicas.
+
+Solução:
+
+* Integração do plugin Capacitor para bloquear rotas indesejadas e correção da passagem de parâmetros nas rotas (Angular Router).
+
+Decisões:
+
+* Utilizar a base de dados local apenas como protótipo intermédio para testar a interface, com o objetivo de migrar para nuvem nas sessões seguintes.
+
+---
+
+**Sessão 3 – 9 de junho de 2026**
+Objetivo:
+Estruturação dos serviços de nuvem, resolução de conflitos de versões e estabilização de componentes da interface de utilizador (UI).
+Atividades realizadas:
+
+* Criação do `GrupoService` para futura leitura e escrita na base de dados.
+* Implementação da interface de pesquisa de membros para a edição de grupos.
+* Ajustes nos *popovers* do perfil de utilizador e correções na estrutura HTML da página inicial.
+* Resolução de múltiplos conflitos de código originados pelas *branches* separadas de trabalho.
+
+Problemas:
+
+* Dificuldade extrema no alinhamento e funcionamento da barra de notificações e botões superiores (foram necessárias mais de 7 tentativas registadas no Git para estabilizar a barra).
+* Estrutura HTML "partida" (tags fechadas incorretamente) a bloquear a compilação do Angular.
+
+Solução:
+
+* Revisão intensiva das tags HTML e aplicação correta de propriedades CSS (`position: relative` e `absolute`) para ancorar ícones e botões.
+
+Decisões:
+
+* Pausar a ligação final dos membros à BD para primeiro garantir que a estrutura de *Merge* no GitHub e a interface do perfil estivessem totalmente funcionais.
+
+---
+
+**Sessão 4 – 10 de junho de 2026**
+Objetivo:
+Migração total para base de dados online (Firebase), implementação de funcionalidades em tempo real (Chat/Ficheiros) e sistema global de notificações.
+Atividades realizadas:
+
+* Ligação do sistema de chat à Firebase, substituindo os botões de teste pela autenticação real (`AuthService`).
+* Implementação do sistema de envio/gestão de ficheiros dentro dos detalhes do grupo.
+* Criação de um filtro de privacidade para que os grupos só sejam visíveis aos membros pertencentes.
+* Desenvolvimento do sistema de notificações de chat (*Toasts* in-app e *Badges* no menu inferior).
+* Melhoria da lógica de renderização das subtarefas para evitar recarregamentos visuais.
+
+Problemas:
+
+* As subtarefas "piscavam" e desapareciam momentaneamente ao serem marcadas como concluídas devido à latência da nuvem.
+* As notificações no ícone inferior não atualizavam quando o utilizador estava noutras abas, pois o Angular suspendia a subscrição (`| async`).
+* Grupos recém-criados desapareciam da lista porque o criador não estava a ser incluído na lista de membros.
+
+Solução:
+
+* Implementação de Atualização Otimista e da diretiva `trackBy` no HTML das tarefas.
+* Substituição do *pipe* `async` por uma subscrição persistente (`.subscribe`) no `ngOnInit` e recurso ao `localStorage` para contar mensagens não lidas.
+* Ajuste no método de criação de grupo para injetar automaticamente os dados do criador na matriz de membros.
+
+Decisões:
+
+* Alterar a lógica de pesquisa de utilizadores para se assemelhar ao Outlook, ignorando maiúsculas/minúsculas e permitindo procurar partes do email, de forma a melhorar a experiência de uso.
