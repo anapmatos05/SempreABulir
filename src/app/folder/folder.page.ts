@@ -5,7 +5,10 @@ import { NavController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { DataService, NovoPrazo } from '../services/data';
 import { AuthService } from '../services/auth.service';
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
+import { GrupoService } from '../services/grupo';
+import { Observable } from 'rxjs';
+
 
 @Component({
   selector: 'app-folder',
@@ -21,6 +24,7 @@ export class FolderPage implements OnInit {
   // Variáveis de calendário e seleção
   public dataSelecionadaCalendario: string = new Date().toISOString();
   public tarefaSelecionada: any = null;
+  datasComTarefas: any[] = [];
 
   // Variáveis de filtragem
   public termoPesquisa: string = '';
@@ -37,10 +41,16 @@ export class FolderPage implements OnInit {
   // Variáveis de autenticação
   public userDisplayName: string = '';
   public userEmail: string = '';
+  public gruposNuvem: any[] = [];
+  public gruposNuvem$!: Observable<any[]>;
+
+  // 🚀 NOVA VARIÁVEL: Contador de notificações não lidas para mostrar a bolinha vermelha no menu inferior)
+  public totalNotificacoes: number = 0; 
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private dataService: DataService,
+    private grupoService: GrupoService,
     private fb: FormBuilder,
     private navCtrl: NavController,
     private router: Router,
@@ -65,16 +75,17 @@ export class FolderPage implements OnInit {
       const idRota = params.get('id') || 'calendario';
       this.folder = idRota.toLowerCase();
       this.gerarSemanaAtual();
+      this.prepararCalendario();
     });
 
     // CORREÇÃO: Removeu-se o take(1) para permitir atualizações em tempo real assim que o Firebase carrega o user
     this.authService.currentUser$.pipe(
       filter(user => user !== null && user !== undefined)
     ).subscribe(user => {
+      
       if (user?.displayName && user.displayName.trim() !== '') {
         this.userDisplayName = user.displayName;
       } else if (user?.email) {
-        // Fallback: Se não houver displayName, usa a parte antes do '@' do email
         this.userDisplayName = user.email.split('@')[0];
       } else {
         this.userDisplayName = 'Utilizador';
@@ -83,6 +94,44 @@ export class FolderPage implements OnInit {
       if (user?.email) {
         this.userEmail = user.email;
       }
+
+      // 🚀 A MAGIA DO FILTRO DE PRIVACIDADE:
+      // Agora a app só pede os grupos DEPOIS de saber o teu nome/email!
+      this.gruposNuvem$ = this.grupoService.getGruposComSubtarefas().pipe(
+        map(grupos => {
+          // Filtra a lista inteira do Firebase e devolve apenas os teus
+          return grupos.filter(grupo => {
+            if (!grupo.membros) return false;
+            
+            // Verifica se o teu email ou nome está na lista de membros deste grupo específico
+            return grupo.membros.some((membro: any) => 
+              membro.email === this.userEmail || membro.nome === this.userDisplayName
+            );
+          });
+        })
+      );
+
+      // 🚀 LIGAÇÃO SEMPRE ATIVA PARA CONTAR NOTIFICAÇÕES
+      this.grupoService.getGruposComSubtarefas().subscribe(grupos => {
+        let contadorGeral = 0;
+
+        this.gruposNuvem = grupos.filter(grupo => {
+          if (!grupo.membros) return false;
+          return grupo.membros.some((m: any) => m.email === this.userEmail || m.nome === this.userDisplayName);
+        }).map(grupo => {
+          const totalMensagens = grupo.conversaGrupo ? grupo.conversaGrupo.length : 0;
+          
+          // O ID do grupo no Firebase é crucial aqui
+          const lidas = parseInt(localStorage.getItem(`lidas_${grupo.id}`) || '0', 10);
+          const naoLidas = Math.max(0, totalMensagens - lidas);
+
+          contadorGeral += naoLidas;
+          return { ...grupo, naoLidas: naoLidas };
+        });
+
+        this.totalNotificacoes = contadorGeral;
+      });
+
     });
   }
 
@@ -138,39 +187,76 @@ export class FolderPage implements OnInit {
     }
   }
 
+  adicionarMembroManual() {
+    if (this.novoMembroNome && this.novoMembroNome.trim() !== '') {
+      // 💡 EM VEZ DE SÓ TEXTO, ENVIAMOS UM OBJETO COM A PROPRIEDADE 'nome'
+      this.novoGrupo.membros.push({ 
+        nome: this.novoMembroNome.trim(),
+        email: 'Manual' // Apenas para preencher a estrutura
+      });
+      
+      // Limpa o campo para o próximo
+      this.novoMembroNome = '';
+      this.resultadosPesquisa = [];
+    }
+  }
+
   removerMembroTemporario(index: number) {
     this.novoGrupo.membros.splice(index, 1);
   }
 
-  guardarNovoGrupo(modal: any) {
-    if (this.novoGrupo.nome.trim() === '' || this.novoGrupo.disciplina.trim() === '') {
+  async guardarNovoGrupo(modal: any) {
+    if (this.novoGrupo.nome.trim() === '' || this.novoGrupo.disciplina === '') {
       alert('Por favor, preencha o Nome do Grupo e a Disciplina.');
       return;
     }
 
-    if (this.novoGrupo.membros.length === 0) {
-      alert('O grupo não pode estar vazio. Adicione pelo menos um membro.');
-      return;
+    // 🚀 A CORREÇÃO: Garante que o criador (Tu) fica sempre no grupo automaticamente!
+    const euJaEstouNoGrupo = this.novoGrupo.membros.some((m: any) => 
+      m.email === this.userEmail || m.nome === this.userDisplayName
+    );
+    
+    if (!euJaEstouNoGrupo) {
+      this.novoGrupo.membros.push({
+        nome: this.userDisplayName,
+        email: this.userEmail
+      });
     }
 
+    // Prepara o pacote para a Nuvem
     const grupoParaGravar = {
       nome: this.novoGrupo.nome,
       disciplina: this.novoGrupo.disciplina,
       membros: [...this.novoGrupo.membros],
-      subtarefas: [],
-      progresso: 0
+      progresso: 0,
+      criadoEm: new Date().toISOString()
     };
 
-    this.dataService.adicionarGrupo(grupoParaGravar);
-    this.salvarDados(); 
-    
-    this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
-    modal.dismiss();
+    try {
+      await this.grupoService.criarGrupo(grupoParaGravar);
+      
+      // Limpa o formulário e fecha o modal (já te coloca como membro base para o próximo)
+      this.novoGrupo = { 
+        nome: '', 
+        disciplina: '', 
+        membros: [{ nome: this.userDisplayName, email: this.userEmail }] 
+      };
+      
+      modal.dismiss();
+    } catch (erro) {
+      console.error('Erro ao criar grupo no Firebase:', erro);
+      alert('Ocorreu um erro ao guardar o grupo na nuvem.');
+    }
   }
 
-  apagarGrupo(grupoParaApagar: any) {
-    this.dataService.removerGrupo(grupoParaApagar);
-    this.salvarDados();
+  async apagarGrupo(grupoParaApagar: any) {
+    if(confirm('Tens a certeza que queres apagar este grupo definitivamente?')) {
+      try {
+        await this.grupoService.apagarGrupo(grupoParaApagar.id);
+      } catch (error) {
+        console.error('Erro ao apagar grupo:', error);
+      }
+    }
   }
 
   obterIniciais(nome: string | any): string {
@@ -192,15 +278,16 @@ export class FolderPage implements OnInit {
     return grupo.membros.map((m: any) => this.obterNomeMembro(m)).join(', ');
   }
 
-  abrirGrupo(nomeDoGrupo: string) {
-    this.router.navigate(['/detalhe-grupo', nomeDoGrupo]);
+  abrirGrupo(grupo: any) {
+    // O Firebase adiciona automaticamente um '.id' único a cada documento.
+    // Usamos esse ID para abrir os detalhes certos. Se não existir (dados antigos locais), usa o nome.
+    const identificador = grupo.id || grupo.nome; 
+    this.router.navigate(['/detalhe-grupo', identificador]);
   }
 
   obterProgressoGrupo(grupo: any): number {
     const tarefas = grupo?.subtarefas ?? grupo?.tarefas ?? [];
-    if (!grupo || tarefas.length === 0) {
-      return 0;
-    }
+    if (!tarefas || tarefas.length === 0) return 0;
     const concluido = tarefas.filter((t: any) => t.concluida).length;
     return Math.round((concluido / tarefas.length) * 100);
   }
@@ -210,6 +297,48 @@ export class FolderPage implements OnInit {
     const total = tarefas.length;
     const concluido = tarefas.filter((t: any) => t.concluida).length;
     return `${concluido}/${total}`;
+  }
+
+  // ==========================================
+  // PESQUISA DE MEMBROS 
+  // ==========================================
+  public resultadosPesquisa: any[] = [];
+
+  // Esta função corre sempre que escreves uma letra no input
+  async pesquisarMembros() {
+    const termo = this.novoMembroNome.trim();
+    
+    if (termo.length < 2) {
+      // Se tiver menos de 2 letras, limpa a lista para não sobrecarregar a base de dados
+      this.resultadosPesquisa = [];
+      return;
+    }
+
+    try {
+      this.resultadosPesquisa = await this.grupoService.procurarUtilizadores(termo);
+      console.log("O Firebase encontrou:", this.resultadosPesquisa);
+    } catch (erro) {
+      console.error('Erro ao procurar utilizadores:', erro);
+    }
+  }
+
+  // Esta função corre quando clicas no nome da pessoa na lista suspensa
+  selecionarMembro(utilizadorEncontrado: any) {
+    // Verifica se já está no grupo para não haver repetidos
+    const jaExiste = this.novoGrupo.membros.find((m: any) => m.id === utilizadorEncontrado.id);
+    
+    if (!jaExiste) {
+      // Guarda o objeto inteiro da pessoa (com ID e Email) em vez de apenas o nome!
+      this.novoGrupo.membros.push({
+        id: utilizadorEncontrado.id,
+        nome: utilizadorEncontrado.nome,
+        email: utilizadorEncontrado.email
+      });
+    }
+    
+    // Limpa a pesquisa
+    this.novoMembroNome = '';
+    this.resultadosPesquisa = [];
   }
 
   // ==========================================
@@ -409,6 +538,62 @@ export class FolderPage implements OnInit {
   // LÓGICA DO CALENDÁRIO
   // ==========================================
   
+  // Função que transforma as tuas tarefas nas marcações amarelas do calendário
+  prepararCalendario() {
+    const marcas: any[] = [];
+    
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    // O nosso truque para aceder ao serviço
+    const servicoDados = this.dataService as any;
+    
+    // BINGO! O nome correto que descobrimos na consola: listaDePrazos
+    const todasAsTarefas = servicoDados.listaDePrazos || [];
+
+    if (todasAsTarefas && todasAsTarefas.length > 0) {
+      todasAsTarefas.forEach((tarefa: any) => {
+        const dataTarefa = tarefa.data || tarefa.prazo || '';
+        
+        if (dataTarefa) {
+          const dataFormatada = dataTarefa.split('T')[0];
+          
+          if (!marcas.some(m => m.date === dataFormatada)) {
+            const dataObj = new Date(dataTarefa);
+            dataObj.setHours(0, 0, 0, 0);
+            
+            const diferencaTempo = dataObj.getTime() - hoje.getTime();
+            const diasEmFalta = Math.ceil(diferencaTempo / (1000 * 3600 * 24));
+            
+            let corFundo = '#fff8d6'; 
+            let corTexto = '#b28c00'; 
+
+            if (diasEmFalta <= 0) {
+              corFundo = '#ffebee'; // Vermelho pastel (Urgente / Hoje ou Expirado)
+              corTexto = '#c62828';
+            } 
+            else if (diasEmFalta > 0 && diasEmFalta <= 3) {
+              corFundo = '#fff8d6'; // Amarelo pastel (Próximos 3 dias)
+              corTexto = '#b28c00'; 
+            } 
+            else {
+              corFundo = '#e8f5e9'; // Verde pastel (Com tempo)
+              corTexto = '#2e7d32'; 
+            }
+
+            marcas.push({
+              date: dataFormatada,
+              textColor: corTexto,
+              backgroundColor: corFundo
+            });
+          }
+        }
+      });
+    }
+
+    this.datasComTarefas = marcas;
+  }
+
   get tarefasDoDiaSelecionado(): any[] {
     if (!this.dataSelecionadaCalendario) return [];
     const dataLimpa = this.dataSelecionadaCalendario.split('T')[0];

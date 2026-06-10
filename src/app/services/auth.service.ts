@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, EnvironmentInjector, inject, runInInjectionContext } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { BehaviorSubject } from 'rxjs';
@@ -7,7 +7,9 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  // Alterado para 'any' nos Subjects para evitar conflitos de tipagem estrita entre o Firebase original e o AngularFire
+  // 1️⃣ A CHAVE MÁGICA: Injetamos o contexto global do Angular
+  private injector = inject(EnvironmentInjector);
+
   private currentUserSubject = new BehaviorSubject<any>(undefined);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -36,8 +38,10 @@ export class AuthService {
   // Carrega dados do utilizador do Firestore
   private async loadUserData(uid: string) {
     try {
-      const userRef = this.afs.doc(`utilizadores/${uid}`);
-      const userSnap = await userRef.ref.get();
+      // 2️⃣ Envolvemos a chamada na zona segura
+      const userSnap = await runInInjectionContext(this.injector, () =>
+        this.afs.doc(`utilizadores/${uid}`).ref.get()
+      );
       if (userSnap.exists) {
         this.userDataSubject.next(userSnap.data());
       }
@@ -49,21 +53,26 @@ export class AuthService {
   // Regista novo utilizador
   async register(email: string, password: string, nome: string): Promise<any> {
     try {
-      const userCredential = await this.afAuth.createUserWithEmailAndPassword(email, password);
+      // 3️⃣ Envolvemos a criação da conta na zona segura
+      const userCredential = await runInInjectionContext(this.injector, () =>
+        this.afAuth.createUserWithEmailAndPassword(email, password)
+      );
       const user = userCredential.user;
 
       if (user) {
         await user.updateProfile({ displayName: nome });
         
-        // Guardar dados do utilizador no Firestore apenas se o utilizador foi criado com sucesso
-        const userRef = this.afs.doc(`utilizadores/${user.uid}`);
-        await userRef.set({
-          uid: user.uid,
-          email: email,
-          nome: nome,
-          dataCriacao: new Date().toISOString(),
-          grupos: []
-        });
+        // Guardar dados do utilizador no Firestore (também na zona segura)
+        await runInInjectionContext(this.injector, () =>
+          this.afs.doc(`utilizadores/${user.uid}`).set({
+            uid: user.uid,
+            email: email,
+            nome: nome,
+            nomeLower: nome.toLowerCase(),
+            dataCriacao: new Date().toISOString(),
+            grupos: []
+          })
+        );
       }
 
       return user;
@@ -76,18 +85,20 @@ export class AuthService {
   // Login com email e senha
   async login(email: string, password: string): Promise<any> {
     try {
-      const userCredential = await this.afAuth.signInWithEmailAndPassword(email, password);
-      return userCredential.user;
+      // 4️⃣ Envolvemos o login na zona segura
+      return await runInInjectionContext(this.injector, () =>
+        this.afAuth.signInWithEmailAndPassword(email, password)
+      );
     } catch (error: any) {
       console.error('Erro no login:', error);
       throw new Error(this.tratarErroAuth(error.code));
     }
   }
 
-  // CORRIGIDO: Logout adaptado para a sintaxe correta do AngularFire Compat
+  // Logout adaptado para a sintaxe correta do AngularFire Compat
   async logout(): Promise<void> {
     try {
-      await this.afAuth.signOut();
+      await runInInjectionContext(this.injector, () => this.afAuth.signOut());
       this.currentUserSubject.next(null);
       this.userDataSubject.next(null);
     } catch (error) {
@@ -105,7 +116,7 @@ export class AuthService {
     return this.userDataSubject.value;
   }
 
-  // CORRIGIDO: Verifica se está autenticado comparando corretamente se não é null nem undefined
+  // Verifica se está autenticado comparando corretamente
   isAuthenticated(): boolean {
     return this.currentUserSubject.value !== null && this.currentUserSubject.value !== undefined;
   }
@@ -121,7 +132,7 @@ export class AuthService {
         return 'A senha deve ter pelo menos 6 caracteres.';
       case 'auth/user-not-found':
       case 'auth/wrong-password':
-        return 'Email ou senha incorretos.'; // Segurança extra: não revelar qual deles falhou
+        return 'Email ou senha incorretos.';
       default:
         return 'Erro de autenticação. Tenta novamente.';
     }

@@ -1,41 +1,35 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { RouteReuseStrategy } from '@angular/router';
-import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
-import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-
-// Módulos essenciais para o funcionamento dos serviços de dados e rede
+import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { RouteReuseStrategy } from '@angular/router';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { HttpClientModule } from '@angular/common/http';
-
-// Firebase
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
-import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { firebaseConfig } from '../environments/firebase.config';
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideStorage, getStorage } from '@angular/fire/storage';
+import { environment } from '../environments/environment';
+import { AppComponent } from './app.component';
 
-/**
- * Módulo raiz da aplicação (AppModule).
- * É aqui que registamos os módulos globais que estarão disponíveis
- * em toda a aplicação (persistência, chamadas HTTP e roteamento).
- */
 @NgModule({
-  declarations: [AppComponent], // Declaração do componente principal
+  declarations: [AppComponent],
   imports: [
-    BrowserModule,              // Módulo necessário para correr a app num browser
-    IonicModule.forRoot(),      // Inicialização global do framework Ionic
-    AppRoutingModule,           // Configuração de rotas definida no AppRoutingModule
-    IonicStorageModule.forRoot(), // Módulo global para o armazenamento local (Base de Dados)
-    HttpClientModule,           // Módulo global para realizar chamadas HTTP (leitura de JSON)
-    AngularFireModule.initializeApp(firebaseConfig),
+    BrowserModule,
+    IonicModule.forRoot(),
+    AppRoutingModule,
+    IonicStorageModule.forRoot(),
+    HttpClientModule,
+    AngularFireModule.initializeApp(environment.firebaseConfig),
     AngularFireAuthModule,
-    AngularFirestoreModule
   ],
   providers: [
-    // Define a estratégia de reutilização de rotas do Ionic para melhor performance
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+    provideFirestore(() => getFirestore()),
+    provideStorage(() => getStorage()),
   ],
-  bootstrap: [AppComponent], // Define o componente raiz que inicia a aplicação
+  bootstrap: [AppComponent]
 })
 export class AppModule {}

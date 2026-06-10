@@ -105,3 +105,13 @@ ion-tab-button {
   --background-focused: rgba(244, 194, 13, 0.15);
   --background-hover: rgba(244, 194, 13, 0.10);
 }
+
+/* Força o botão do dia selecionado a cooperar com as cores de destaque */
+.calendar-datetime::ng-deep {
+  .calendar-day-active {
+    background: rgba(244, 194, 13, 0.2) !important; /* Amarelo da app mas transparente */
+    border: 2px solid #f4c20d !important;          /* Uma borda vincada para marcar a seleção */
+    color: #000 !important;                        /* Mantém o número a preto */
+    font-weight: bold !important;
+  }
+}

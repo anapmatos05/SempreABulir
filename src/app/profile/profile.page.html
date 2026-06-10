@@ -1,45 +1,66 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="back()" color="primary">
-        <ion-icon name="arrow-back" size="large"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>Meu Perfil</ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar style="--background: #f4c20d; padding: 8px 10px 4px 10px;">
+    
+    <div class="ion-hide-md-down" style="display: flex; width: 100%; height: 100%; justify-content: space-between; align-items: flex-end;">
+      <div style="display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 2px;">
+        <strong style="font-size: 22px; color: #000; line-height: 1.1;">Agenda Académica</strong>
+        <span style="font-size: 11px; color: #000; opacity: 0.7; line-height: 1;">ESTG - IPVC</span>
+      </div>
+      </div>
+
+    <div class="ion-hide-md-up" style="display: flex; justify-content: space-between; align-items: center; padding-left: 15px; padding-bottom: 5px; padding-right: 10px;">
+      <div>
+        <strong style="font-size: 20px; color: #000; display: block; line-height: 1.1;">Agenda Académica</strong>
+        <span style="font-size: 12px; color: #000; opacity: 0.7; display: block; line-height: 1;">ESTG - IPVC</span>
+      </div>
+      </div>
+
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <!-- Secção de Perfil do Utilizador -->
-  <div class="profile-section">
-    <div class="profile-card">
-      <ion-avatar class="avatar-large">
-        <div class="avatar-letter">{{ displayName.charAt(0) }}</div>
-      </ion-avatar>
-      <div class="profile-info">
-        <h2 class="profile-name">{{ displayName }}</h2>
-        <p class="profile-status">Utilizador</p>
+<ion-content style="--background: #f4f5f8;">
+  
+  <div style="display: flex; align-items: center; padding: 25px 20px 0 10px; gap: 5px;">
+    <ion-button fill="clear" (click)="back()" style="color: black; --padding-start: 8px; --padding-end: 8px; height: 40px; margin: 0;">
+      <ion-icon name="arrow-back" style="font-size: 28px;"></ion-icon>
+    </ion-button>
+    
+    <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #222;">O Meu Perfil</h1>
+  </div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; margin-top: 15px; margin-bottom: 30px;">
+    <div style="width: 110px; height: 110px; border-radius: 50%; background: #f4c20d; color: black; display: flex; align-items: center; justify-content: center; font-size: 45px; font-weight: bold; box-shadow: 0 4px 15px rgba(244, 194, 13, 0.4);">
+      {{ displayName !== 'Carregando...' ? displayName.charAt(0).toUpperCase() : 'U' }}
+    </div>
+    
+    <h2 style="margin-top: 20px; font-weight: 800; color: #222; font-size: 22px; margin-bottom: 5px;">
+      {{ displayName }}
+    </h2>
+    <p style="margin: 0; color: #666; font-weight: 500;">Estudante ESTG</p>
+  </div>
+
+  <div class="ion-padding">
+    
+    <div style="background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 40px;">
+      <h3 style="font-size: 13px; font-weight: 800; color: #a0a0a0; margin-bottom: 20px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px;">
+        Detalhes da Conta
+      </h3>
+
+      <div style="display: flex; align-items: center; gap: 15px; padding-bottom: 5px;">
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: #fffdf5; display: flex; align-items: center; justify-content: center;">
+          <ion-icon name="mail-outline" style="font-size: 20px; color: #f4c20d;"></ion-icon>
+        </div>
+        <div>
+          <span style="display: block; font-size: 12px; color: #888; font-weight: 500;">Email Académico</span>
+          <span style="font-weight: 600; color: #333; font-size: 15px;">{{ email || 'A carregar...' }}</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Secção de Detalhes -->
-  <div class="details-section">
-    <h3 class="section-title">Detalhes da Conta</h3>
-    <ion-list class="details-list">
-      <ion-item lines="full">
-        <ion-icon name="mail-outline" slot="start" color="primary"></ion-icon>
-        <ion-label class="label-title">Email</ion-label>
-        <ion-text class="label-value" slot="end">{{ email }}</ion-text>
-      </ion-item>
-    </ion-list>
-  </div>
-
-  <!-- Secção de Ações -->
-  <div class="actions-section">
-    <ion-button expand="block" color="danger" (click)="logout()" size="large">
-      <ion-icon name="log-out" slot="start"></ion-icon>
-      Terminar sessão
+    <ion-button expand="block" color="danger" fill="outline" shape="round" style="height: 50px; font-weight: bold; border-width: 2px;" (click)="logout()">
+      <ion-icon slot="start" name="log-out"></ion-icon>
+      Terminar Sessão
     </ion-button>
+    
   </div>
 </ion-content>
