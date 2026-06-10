@@ -41,7 +41,11 @@ export class FolderPage implements OnInit {
   // Variáveis de autenticação
   public userDisplayName: string = '';
   public userEmail: string = '';
-  public gruposNuvem$: Observable<any[]> | undefined;
+  public gruposNuvem: any[] = [];
+  public gruposNuvem$!: Observable<any[]>;
+
+  // 🚀 NOVA VARIÁVEL: Contador de notificações não lidas para mostrar a bolinha vermelha no menu inferior)
+  public totalNotificacoes: number = 0; 
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -93,7 +97,7 @@ export class FolderPage implements OnInit {
 
       // 🚀 A MAGIA DO FILTRO DE PRIVACIDADE:
       // Agora a app só pede os grupos DEPOIS de saber o teu nome/email!
-      this.gruposNuvem$ = this.grupoService.getGruposAtivos().pipe(
+      this.gruposNuvem$ = this.grupoService.getGruposComSubtarefas().pipe(
         map(grupos => {
           // Filtra a lista inteira do Firebase e devolve apenas os teus
           return grupos.filter(grupo => {
@@ -106,6 +110,27 @@ export class FolderPage implements OnInit {
           });
         })
       );
+
+      // 🚀 LIGAÇÃO SEMPRE ATIVA PARA CONTAR NOTIFICAÇÕES
+      this.grupoService.getGruposComSubtarefas().subscribe(grupos => {
+        let contadorGeral = 0;
+
+        this.gruposNuvem = grupos.filter(grupo => {
+          if (!grupo.membros) return false;
+          return grupo.membros.some((m: any) => m.email === this.userEmail || m.nome === this.userDisplayName);
+        }).map(grupo => {
+          const totalMensagens = grupo.conversaGrupo ? grupo.conversaGrupo.length : 0;
+          
+          // O ID do grupo no Firebase é crucial aqui
+          const lidas = parseInt(localStorage.getItem(`lidas_${grupo.id}`) || '0', 10);
+          const naoLidas = Math.max(0, totalMensagens - lidas);
+
+          contadorGeral += naoLidas;
+          return { ...grupo, naoLidas: naoLidas };
+        });
+
+        this.totalNotificacoes = contadorGeral;
+      });
 
     });
   }
@@ -262,9 +287,7 @@ export class FolderPage implements OnInit {
 
   obterProgressoGrupo(grupo: any): number {
     const tarefas = grupo?.subtarefas ?? grupo?.tarefas ?? [];
-    if (!grupo || tarefas.length === 0) {
-      return 0;
-    }
+    if (!tarefas || tarefas.length === 0) return 0;
     const concluido = tarefas.filter((t: any) => t.concluida).length;
     return Math.round((concluido / tarefas.length) * 100);
   }

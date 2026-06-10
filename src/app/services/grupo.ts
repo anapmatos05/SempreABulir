@@ -4,6 +4,9 @@ import {
   addDoc, query, where, getDocs, updateDoc, deleteDoc 
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
+import { of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class GrupoService {
@@ -82,5 +85,25 @@ export class GrupoService {
         return [];
       }
     });
+  }
+
+  getGruposComSubtarefas(): Observable<any[]> {
+    return collectionData(collection(this.firestore, 'grupos'), { idField: 'id' }).pipe(
+      switchMap((grupos: any[]) => {
+        if (grupos.length === 0) return of([]);
+        
+        // Para cada grupo, vai buscar as suas subtarefas
+        const grupos$ = grupos.map(grupo =>
+          collectionData(
+            collection(this.firestore, `grupos/${grupo.id}/subtarefas`),
+            { idField: 'id' }
+          ).pipe(
+            map(subtarefas => ({ ...grupo, subtarefas }))
+          )
+        );
+        
+        return combineLatest(grupos$);
+      })
+    );
   }
 }

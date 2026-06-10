@@ -85,7 +85,7 @@
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px;">
-      <div *ngFor="let tarefa of grupoDetalhado.subtarefas" 
+      <div *ngFor="let tarefa of grupoDetalhado.subtarefas; trackBy: trackPorTarefa"
            (click)="alterarEstadoSubtarefa(tarefa)"
            [style.background]="obterCorPrazo(tarefa.data, tarefa.concluida).background" 
            [style.border]="obterCorPrazo(tarefa.data, tarefa.concluida).border"

@@ -371,54 +371,61 @@
   </div>
 
   <div *ngIf="folder === 'grupos'" style="padding: 10px;">
-  
-    <ng-container *ngIf="gruposNuvem$ | async as gruposRecebidos">
 
-      <div *ngIf="gruposRecebidos.length === 0" style="text-align: center; padding: 50px 20px; color: #8c8c8c; background: #f9f9f9; border-radius: 16px; border: 2px dashed #e0e0e0;">
+    <ng-container *ngIf="gruposNuvem.length === 0">
+      <div style="text-align: center; padding: 50px 20px; color: #8c8c8c; background: #f9f9f9; border-radius: 16px; border: 2px dashed #e0e0e0;">
         <ion-icon name="people-outline" style="font-size: 48px; margin-bottom: 10px; color: #ccc;"></ion-icon>
         <p style="margin: 0; font-size: 16px;">Não tens grupos activos.</p>
-        <small>Clica no botão <strong>+</strong> para criares o teu primeiro grupo.</small>
       </div>
+    </ng-container>
 
-      <div style="display: flex; flex-direction: column; gap: 15px;">
-        
-        <div *ngFor="let grupo of gruposRecebidos" (click)="abrirGrupo(grupo)" style="background: #ffffff; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); padding: 20px; position: relative; cursor: pointer; margin-bottom: 10px;">
-          
-          <ion-icon name="close" (click)="apagarGrupo(grupo); $event.stopPropagation()" style="position: absolute; top: 20px; right: 20px; font-size: 20px; color: #b0b0b0; cursor: pointer; z-index: 10;"></ion-icon>
-          
-          <h2 style="font-size: 20px; font-weight: bold; color: #000; margin: 0 0 5px 0; padding-right: 25px;">{{ grupo.nome }}</h2>
-          
-          <div style="display: flex; align-items: center; color: #666; margin-bottom: 15px;">
-            <ion-icon name="book-outline" style="margin-right: 6px; font-size: 16px;"></ion-icon>
-            <span style="font-size: 14px;">{{ grupo.disciplina }}</span>
-          </div>
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+      <div *ngFor="let grupo of gruposNuvem" (click)="abrirGrupo(grupo)"
+          style="background: #ffffff; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); padding: 20px; position: relative; cursor: pointer;">
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 13px; font-weight: bold; color: #333;">Membros</span>
-            <span style="font-size: 12px; color: #8c8c8c;">{{ grupo.membros?.length || 0 }}</span>
-          </div>
-          
-          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
-            <div *ngFor="let membro of grupo.membros" style="display: flex; align-items: center; border: 1px solid #e0e0e0; background: #f9f9f9; padding: 4px 12px 4px 4px; border-radius: 20px;">
-              <div style="background: #f4c20d; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; margin-right: 8px;">
-                {{ obterIniciais(membro) }}
-              </div>
-              <span style="font-size: 13px; color: #000; font-weight: 500;">{{ obterNomeMembro(membro) }}</span>
+        <!-- Botão apagar + badge notificações -->
+        <ion-icon name="close" (click)="apagarGrupo(grupo); $event.stopPropagation()"
+          style="position: absolute; top: 16px; right: 16px; font-size: 20px; color: #b0b0b0; cursor: pointer; z-index: 10;">
+        </ion-icon>
+        <ion-badge *ngIf="grupo.naoLidas > 0" color="danger"
+          style="position: absolute; top: 14px; right: 44px; border-radius: 50%; font-size: 12px; padding: 4px 7px;">
+          {{ grupo.naoLidas }}
+        </ion-badge>
+
+        <!-- Nome e disciplina -->
+        <h2 style="font-size: 18px; font-weight: bold; color: #000; margin: 0 0 2px 0; padding-right: 50px;">{{ grupo.nome }}</h2>
+        <p style="font-size: 13px; color: #888; margin: 0 0 14px 0;">{{ grupo.disciplina }}</p>
+
+        <!-- Membros (iniciais) + contagem -->
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <div style="display: flex;">
+            <div *ngFor="let membro of (grupo.membros | slice:0:4); let i = index"
+              [style.margin-left]="i > 0 ? '-8px' : '0'"
+              style="width: 28px; height: 28px; border-radius: 50%; background: #f4c20d; border: 2px solid #fff;
+                    display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 10px; font-weight: bold; color: #000;">{{ obterIniciais(membro) }}</span>
             </div>
           </div>
+          <span style="font-size: 12px; color: #888;">
+            {{ grupo.membros?.length || 0 }} membro{{ (grupo.membros?.length || 0) !== 1 ? 's' : '' }}
+          </span>
+        </div>
 
-          <div style="font-size: 12px; color: #666; margin-bottom: 12px;">
-            {{ obterListaNomesMembros(grupo) }}
+        <!-- Barra de progresso -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="flex: 1; background: #f0f0f0; border-radius: 999px; height: 6px; overflow: hidden;">
+            <div [style.width]="obterProgressoGrupo(grupo) + '%'"
+              style="height: 100%; background: #f4c20d; border-radius: 999px; transition: width 0.3s ease;">
+            </div>
           </div>
+          <span style="font-size: 12px; font-weight: bold; color: #555; white-space: nowrap;">
+            {{ obterTextoTarefasGrupo(grupo) }} subtarefas
+          </span>
+        </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 13px; font-weight: bold; color: #333;">Tarefas</span>
-            <span style="font-size: 12px; color: #8c8c8c;">{{ obterTextoTarefasGrupo(grupo) }} • {{ obterProgressoGrupo(grupo) }}%</span>
-          </div>
-          
-          <ion-progress-bar [value]="obterProgressoGrupo(grupo) / 100" style="--background: #f0f0f0; --progress-background: #f4c20d; height: 6px; border-radius: 3px; margin-bottom: 5px;"></ion-progress-bar>
-          
-        </div> </div> </ng-container>
+      </div>
+    </div>
+
   </div>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 10px;">
@@ -713,9 +720,13 @@
         <span [style.color]="folder === 'tarefas' ? '#000000' : '#8c8c8c'" [style.font-weight]="folder === 'tarefas' ? 'bold' : 'normal'" style="font-size: 11px; margin-top: 2px;">Tarefas</span>
       </div>
 
-      <div (click)="folder = 'grupos'" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; flex: 1;">
+      <div (click)="folder = 'grupos'" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; flex: 1; position: relative;">
         <ion-icon [name]="folder === 'grupos' ? 'people' : 'people-outline'" [style.color]="folder === 'grupos' ? '#f4c20d' : '#8c8c8c'" style="font-size: 24px;"></ion-icon>
         <span [style.color]="folder === 'grupos' ? '#000000' : '#8c8c8c'" [style.font-weight]="folder === 'grupos' ? 'bold' : 'normal'" style="font-size: 11px; margin-top: 2px;">Grupos</span>
+        
+        <ion-badge *ngIf="totalNotificacoes > 0" color="danger" style="position: absolute; top: -5px; right: 20%; border-radius: 50%; font-size: 11px; padding: 3px 6px;">
+          {{ totalNotificacoes }}
+        </ion-badge>
       </div>
     </div>
   </ion-toolbar>

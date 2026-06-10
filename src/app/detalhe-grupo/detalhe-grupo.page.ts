@@ -61,11 +61,28 @@ export class DetalheGrupoPage implements OnInit {
           this.grupoDetalhado = grupoCloud;
           this.grupoDetalhado.progresso = grupoCloud.progresso || 0;
           this.grupoDetalhado.membros = this.normalizarMembros(grupoCloud.membros || []);
-          
-          // Carrega o chat e ficheiros que vieram da nuvem
-          this.conversaGrupo = grupoCloud.conversaGrupo || [];
           this.ficheirosPartilhados = grupoCloud.ficheirosPartilhados || [];
-        
+          
+          // 🚀 LÓGICA DAS NOTIFICAÇÕES DE CHAT AQUI:
+          const mensagensNuvem = grupoCloud.conversaGrupo || [];
+
+          // Se já tínhamos mensagens carregadas, e de repente chegam mais mensagens da nuvem...
+          if (this.conversaGrupo.length > 0 && mensagensNuvem.length > this.conversaGrupo.length) {
+            
+            // Vai buscar a última mensagem que acabou de chegar
+            const novaMensagem = mensagensNuvem[mensagensNuvem.length - 1];
+
+            // Mostra a notificação APENAS se a mensagem NÃO for tua
+            if (novaMensagem.autor !== this.nomeUtilizadorAtual) {
+              this.mostrarNotificacao(novaMensagem.autor, novaMensagem.texto);
+            }
+          }
+
+          // Atualiza o chat no ecrã com as mensagens novas
+          this.conversaGrupo = mensagensNuvem;
+
+          // 🚀 NOVA LINHA: Guarda na memória do telemóvel que já leste todas estas mensagens
+          localStorage.setItem(`lidas_${this.grupoIdFirebase}`, mensagensNuvem.length.toString());
         }
       });
 
@@ -175,11 +192,28 @@ export class DetalheGrupoPage implements OnInit {
     }
   }
 
-  // 🚀 ATUALIZAR VISTO DA TAREFA NA NUVEM
+  // 🚀 ATUALIZAR VISTO DA TAREFA (Agora instantâneo e sem piscar!)
   async alterarEstadoSubtarefa(tarefa: any) {
-    await this.grupoService.atualizarSubtarefa(this.grupoIdFirebase, tarefa.id, {
-      concluida: !tarefa.concluida
-    });
+    // 1. Atualização Otimista: Mudamos logo no ecrã antes de o Firebase responder!
+    tarefa.concluida = !tarefa.concluida;
+    this.atualizarProgresso(); // A barra amarela avança imediatamente!
+
+    // 2. Manda para a nuvem em silêncio
+    try {
+      await this.grupoService.atualizarSubtarefa(this.grupoIdFirebase, tarefa.id, {
+        concluida: tarefa.concluida
+      });
+    } catch (erro) {
+      // Se a net falhar, desfazemos o clique e avisamos
+      console.error('Erro ao atualizar na nuvem:', erro);
+      tarefa.concluida = !tarefa.concluida; 
+      this.atualizarProgresso();
+    }
+  }
+
+  // Função âncora: Ajuda o Angular a saber qual tarefa é qual, para não ter de apagar a lista toda
+  trackPorTarefa(index: number, tarefa: any) {
+    return tarefa.id;
   }
 
   // 🚀 ENVIAR MENSAGEM PARA A NUVEM
