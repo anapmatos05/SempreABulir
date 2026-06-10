@@ -128,7 +128,7 @@ Melhorar os detalhes visuais e as cores da aplicação para ficar mais fácil de
 
 ---
 
-##  Sessão 7 – 10 de Junho de 2026 (Sessão Atual)
+##  Sessão 7 – 10 de Junho de 2026
 
 ###  Objetivo
 Corrigir os botões do perfil (Popovers) que não abriam e resolver os problemas de ficheiros acumulados no GitHub (*Merge Conflicts*).
