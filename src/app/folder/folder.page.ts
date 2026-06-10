@@ -7,6 +7,7 @@ import { DataService, NovoPrazo } from '../services/data';
 import { AuthService } from '../services/auth.service';
 import { filter } from 'rxjs/operators';
 import { GrupoService } from '../services/grupo';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-folder',
@@ -39,6 +40,7 @@ export class FolderPage implements OnInit {
   // Variáveis de autenticação
   public userDisplayName: string = '';
   public userEmail: string = '';
+  public gruposNuvem$: Observable<any[]> | undefined;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -88,6 +90,9 @@ export class FolderPage implements OnInit {
         this.userEmail = user.email;
       }
     });
+
+    // Ligar o tubo de oxigénio à nuvem para receber os grupos em tempo real!
+    this.gruposNuvem$ = this.grupoService.getGruposAtivos();
   }
 
   // ==========================================
@@ -142,6 +147,20 @@ export class FolderPage implements OnInit {
     }
   }
 
+  adicionarMembroManual() {
+    if (this.novoMembroNome && this.novoMembroNome.trim() !== '') {
+      // 💡 EM VEZ DE SÓ TEXTO, ENVIAMOS UM OBJETO COM A PROPRIEDADE 'nome'
+      this.novoGrupo.membros.push({ 
+        nome: this.novoMembroNome.trim(),
+        email: 'Manual' // Apenas para preencher a estrutura
+      });
+      
+      // Limpa o campo para o próximo
+      this.novoMembroNome = '';
+      this.resultadosPesquisa = [];
+    }
+  }
+
   removerMembroTemporario(index: number) {
     this.novoGrupo.membros.splice(index, 1);
   }
@@ -181,9 +200,14 @@ export class FolderPage implements OnInit {
     }
   }
 
-  apagarGrupo(grupoParaApagar: any) {
-    this.dataService.removerGrupo(grupoParaApagar);
-    this.salvarDados();
+  async apagarGrupo(grupoParaApagar: any) {
+    if(confirm('Tens a certeza que queres apagar este grupo definitivamente?')) {
+      try {
+        await this.grupoService.apagarGrupo(grupoParaApagar.id);
+      } catch (error) {
+        console.error('Erro ao apagar grupo:', error);
+      }
+    }
   }
 
   obterIniciais(nome: string | any): string {

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController } from '@ionic/angular';
-import { DataService } from '../services/data';
 import { GrupoService } from '../services/grupo';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-detalhe-grupo',
@@ -11,45 +11,23 @@ import { GrupoService } from '../services/grupo';
   standalone: false
 })
 export class DetalheGrupoPage implements OnInit {
-  // Variáveis de controlo da interface e abas
-  public nomeDoGrupo: string = '';
-  public abaAtiva: string = 'subtarefas'; // Controla qual a aba visível (subtarefas, chat ou ficheiros)
+  public nomeDoGrupo: string = 'A carregar...';
+  public abaAtiva: string = 'subtarefas';
   public grupoIdFirebase: string = '';
   
-  // Base de dados simulada (Mock Data) do grupo - Conforme o teu Storyboard
   public grupoDetalhado: any = {
-    nome: '',
-    disciplina: '',
-    progresso: 0,
-    membros: [],
-    subtarefas: []
+    nome: 'A carregar...', disciplina: '', progresso: 0, membros: [], subtarefas: []
   };
 
-  // Variáveis auxiliares para os formulários e janelas pop-up (modais)
   public novoMembroNome: string = '';
   public grupoEmEdicao: any = {};
   public novaSubtarefa = { titulo: '', responsavel: '', data: '' };
+  
   public conversaGrupo: any[] = [];
   public novaMensagem: string = '';
-  public autoresChat: string[] = ['Ana Matos', 'Duarte Costa'];
-  public autorMensagem: string = 'Ana Matos';
-
-  atualizarAutoresChat() {
-    const autores = (this.grupoDetalhado.membros ?? [])
-      .map((m: any) => typeof m === 'string' ? m : m?.nome ?? '')
-      .filter((nome: string) => nome && nome.trim().length > 0);
-
-    if (autores.length > 0) {
-      this.autoresChat = autores;
-      if (!this.autoresChat.includes(this.autorMensagem)) {
-        this.autorMensagem = this.autoresChat[0];
-      }
-    }
-  }
-  public ficheirosPartilhados: any[] = [
-    { nome: 'Analise_Questionario.pdf', autor: 'Duarte Costa', data: '2026-04-07' },
-    { nome: 'Rascunho_Modelo_Conceptual.docx', autor: 'Ana Matos', data: '2026-04-08' }
-  ];
+  public nomeUtilizadorAtual: string = 'A carregar...';
+  
+  public ficheirosPartilhados: any[] = [];
   public novoFicheiroNome: string = '';
   public novoFicheiroAutor: string = '';
   public novoFicheiroData: string = new Date().toISOString().split('T')[0];
@@ -57,33 +35,44 @@ export class DetalheGrupoPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private navCtrl: NavController,
-    private dataService: DataService,
-    private grupoService: GrupoService
+    private grupoService: GrupoService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
-    // 1. Em vez do nome, vamos tentar apanhar o ID único do grupo
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        // Usa o nome real, ou a primeira parte do email se não houver nome
+        this.nomeUtilizadorAtual = user.displayName || user.email.split('@')[0];
+      }
+    });
+
     const idRecebido = this.route.snapshot.paramMap.get('id') || this.route.snapshot.paramMap.get('nome');
     
     if (idRecebido) {
       this.grupoIdFirebase = idRecebido;
 
-      // 2. Ligar a "antena" aos detalhes do grupo na Nuvem
+      // OUVIR O GRUPO (Nome, Membros, Chat, Ficheiros) EM TEMPO REAL
       this.grupoService.getDetalhesGrupo(this.grupoIdFirebase).subscribe(grupoCloud => {
         if (grupoCloud) {
           this.nomeDoGrupo = grupoCloud.nome;
           this.grupoDetalhado = grupoCloud;
-          this.grupoDetalhado.progresso = this.grupoDetalhado.progresso ?? 0;
-          this.grupoDetalhado.membros = this.normalizarMembros(this.grupoDetalhado.membros ?? []);
-          this.atualizarAutoresChat();
+          this.grupoDetalhado.progresso = grupoCloud.progresso || 0;
+          this.grupoDetalhado.membros = this.normalizarMembros(grupoCloud.membros || []);
+          
+          // Carrega o chat e ficheiros que vieram da nuvem
+          this.conversaGrupo = grupoCloud.conversaGrupo || [];
+          this.ficheirosPartilhados = grupoCloud.ficheirosPartilhados || [];
+        
         }
       });
 
-      // 3. Ligar a "antena" às subtarefas em TEMPO REAL!
+      // OUVIR AS SUBTAREFAS EM TEMPO REAL
       this.grupoService.getSubtarefas(this.grupoIdFirebase).subscribe(tarefasCloud => {
-        // Sempre que a Ana ou tu adicionarem uma tarefa, isto corre sozinho
-        this.grupoDetalhado.subtarefas = tarefasCloud;
-        this.atualizarProgresso(); // A tua função de matemática recalcula a barra!
+        if (this.grupoDetalhado) {
+          this.grupoDetalhado.subtarefas = tarefasCloud || [];
+          this.atualizarProgresso(); 
+        }
       });
     }
   }
@@ -92,244 +81,158 @@ export class DetalheGrupoPage implements OnInit {
     return membros.map(membro => {
       if (typeof membro === 'string') {
         const nome = membro.trim();
-        return {
-          nome,
-          email: nome.toLowerCase().replace(/\s+/g, '.') + '@estg.ipvc.pt'
-        };
+        return { nome, email: nome.toLowerCase().replace(/\s+/g, '.') + '@estg.ipvc.pt' };
       }
-      return {
-        nome: membro?.nome ?? '',
-        email: membro?.email ?? ''
-      };
+      return { nome: membro?.nome || '', email: membro?.email || '' };
     });
   }
 
-  // ==========================================
-  // NAVEGAÇÃO E REQUISITOS VISUAIS
-  // ==========================================
-
-  // Função para voltar atrás para a listagem principal de grupos
   voltarParaGrupos() {
     this.navCtrl.navigateBack('/folder/grupos', { animated: false });
   }
 
-  // Extrai a primeira letra do nome para desenhar o avatar circular colorido (Ex: "Ana" -> "A")
   obterIniciais(nome: string | any): string {
-    const valor = typeof nome === 'string' ? nome : nome?.nome ?? '';
-    if (!valor) return '';
-    return valor.substring(0, 1).toUpperCase();
+    const valor = typeof nome === 'string' ? nome : nome?.nome || '';
+    return valor ? valor.substring(0, 1).toUpperCase() : '';
   }
 
-  // ==========================================
-  // GESTÃO E EDIÇÃO DOS MEMBROS DO GRUPO
-  // ==========================================
-
-  // Abre a janela de edição e cria uma cópia segura dos dados
   abrirEdicao(modal: any) {
     this.grupoEmEdicao = JSON.parse(JSON.stringify(this.grupoDetalhado));
     modal.present();
   }
 
-  // Adiciona um membro novo e gera automaticamente o e-mail do IPVC limpo de acentos
   adicionarMembroEdicao() {
     const nomeLimpo = this.novoMembroNome.trim();
     if (nomeLimpo.length > 0) {
-      // Cria o formato de email: "nome.sobrenome@estg.ipvc.pt"
-      const emailGerado = nomeLimpo
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // Remove acentos e cedilhas
-        .replace(/\s+/g, '.') + '@estg.ipvc.pt'; // Troca os espaços por pontos
-
-      this.grupoEmEdicao.membros.push({
-        nome: nomeLimpo,
-        email: emailGerado
-      });
-      this.novoMembroNome = ''; // Limpa o campo de texto
+      const emailGerado = nomeLimpo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '.') + '@estg.ipvc.pt';
+      this.grupoEmEdicao.membros.push({ nome: nomeLimpo, email: emailGerado });
+      this.novoMembroNome = '';
     }
   }
 
-  // Remove um membro temporariamente da lista de edição
   removerMembroEdicao(index: number) {
     this.grupoEmEdicao.membros.splice(index, 1);
   }
 
-  // Confirma e guarda as alterações feitas no grupo
+  // 🚀 GUARDAR EDIÇÃO NA NUVEM
   async guardarEdicao(modal: any) {
-    Object.assign(this.grupoDetalhado, this.grupoEmEdicao);
-    this.atualizarAutoresChat();
-    await this.dataService.salvarGrupos();
+    await this.grupoService.atualizarGrupo(this.grupoIdFirebase, {
+      nome: this.grupoEmEdicao.nome,
+      disciplina: this.grupoEmEdicao.disciplina,
+      membros: this.grupoEmEdicao.membros
+    });
     modal.dismiss();
   }
 
-  // ==========================================
-  // LOGICA DE SUBTAREFAS E PROGRESSO AUTOMÁTICO
-  // ==========================================
-
-  // Prepara e abre a janela para criar uma nova subtarefa
   abrirNovaSubtarefa(modal: any) {
     this.novaSubtarefa = { titulo: '', responsavel: '', data: '' };
     modal.present();
   }
 
-  // Guarda a nova subtarefa e atualiza o progresso do grupo na hora
   async guardarSubtarefa(modal: any) {
     if (this.novaSubtarefa.titulo.trim().length > 0) {
-      
-      // Cria o objeto exatamente como tinhas
-      const dadosDaNovaTarefa = {
+      await this.grupoService.adicionarSubtarefa(this.grupoIdFirebase, {
         titulo: this.novaSubtarefa.titulo,
         responsavel: this.novaSubtarefa.responsavel || 'Por atribuir',
         data: this.novaSubtarefa.data || new Date().toISOString().split('T')[0],
         concluida: false
-      };
-      
-      // Envia para o Firebase através do teu novo serviço!
-      await this.grupoService.adicionarSubtarefa(this.grupoIdFirebase, dadosDaNovaTarefa);
-      
-      // Já não precisas de fazer .push() nem calcular progresso aqui, 
-      // porque o Firebase vai avisar o ngOnInit que há uma tarefa nova e ele faz isso sozinho!
-      
+      });
       modal.dismiss();
     }
   }
 
-  // Ativa/Desativa o visto da tarefa ao clicar e recalcula a percentagem
+  // 🚀 ATUALIZAR VISTO DA TAREFA NA NUVEM
   async alterarEstadoSubtarefa(tarefa: any) {
-    tarefa.concluida = !tarefa.concluida;
-    this.atualizarProgresso();
-    await this.dataService.salvarGrupos();
+    await this.grupoService.atualizarSubtarefa(this.grupoIdFirebase, tarefa.id, {
+      concluida: !tarefa.concluida
+    });
   }
 
-  enviarMensagem() {
+  // 🚀 ENVIAR MENSAGEM PARA A NUVEM
+  async enviarMensagem() {
     const texto = this.novaMensagem.trim();
-    if (!texto) {
-      return;
-    }
+    if (!texto) return;
 
-    const horario = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const deMim = this.autorMensagem === 'Ana Matos';
+    const novaMsg = {
+      autor: this.nomeUtilizadorAtual, // 👈 Agora usa o teu nome real!
+      texto: texto,
+      horario: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
 
-    this.conversaGrupo.push({ autor: this.autorMensagem, texto, horario, deMim });
+    const novaListaChat = [...this.conversaGrupo, novaMsg];
+    await this.grupoService.atualizarGrupo(this.grupoIdFirebase, { conversaGrupo: novaListaChat });
     this.novaMensagem = '';
   }
 
-  adicionarFicheiro() {
+  // 🚀 ADICIONAR FICHEIRO À NUVEM
+  async adicionarFicheiro() {
     const nome = this.novoFicheiroNome.trim();
-    if (!nome) {
-      return;
-    }
+    if (!nome) return;
 
-    const autor = this.novoFicheiroAutor.trim() || 'Ana Matos';
-    const data = this.novoFicheiroData || new Date().toISOString().split('T')[0];
+    const novoDoc = {
+      nome,
+      autor: this.novoFicheiroAutor.trim() || this.nomeUtilizadorAtual,
+      data: this.novoFicheiroData || new Date().toISOString().split('T')[0]
+    };
 
-    this.ficheirosPartilhados.unshift({ nome, autor, data });
+    const novaListaFicheiros = [novoDoc, ...this.ficheirosPartilhados];
+    await this.grupoService.atualizarGrupo(this.grupoIdFirebase, { ficheirosPartilhados: novaListaFicheiros });
+    
     this.novoFicheiroNome = '';
     this.novoFicheiroAutor = '';
-    this.novoFicheiroData = new Date().toISOString().split('T')[0];
   }
 
   baixarFicheiro(ficheiro: any) {
     alert(`Ação fictícia: baixar ${ficheiro.nome}`);
   }
 
-  removerFicheiro(ficheiro: any) {
-    this.ficheirosPartilhados = this.ficheirosPartilhados.filter(f => f !== ficheiro);
+  // 🚀 REMOVER FICHEIRO DA NUVEM
+  async removerFicheiro(ficheiro: any) {
+    const novaListaFicheiros = this.ficheirosPartilhados.filter(f => f.nome !== ficheiro.nome);
+    await this.grupoService.atualizarGrupo(this.grupoIdFirebase, { ficheirosPartilhados: novaListaFicheiros });
   }
 
-  obterDataSemHorario(dataString: string): Date {
-    if (!dataString) {
-      return new Date();
-    }
-    const partes = dataString.split('-').map(Number);
-    if (partes.length === 3) {
-      return new Date(partes[0], partes[1] - 1, partes[2]);
-    }
-    return new Date(dataString);
-  }
-
-  obterDiasParaEntrega(dataString: string): number {
-    const prazo = this.obterDataSemHorario(dataString);
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    prazo.setHours(0, 0, 0, 0);
-    const diffMs = prazo.getTime() - hoje.getTime();
-    return Math.round(diffMs / (1000 * 60 * 60 * 24));
-  }
-
-  obterTextoPrazo(dataString: string, concluida: boolean): string {
-    if (concluida) {
-      return 'Concluída';
-    }
-    const dias = this.obterDiasParaEntrega(dataString);
-    if (dias < 0) {
-      return 'Atrasada';
-    }
-    if (dias === 0) {
-      return 'Hoje';
-    }
-    if (dias === 1) {
-      return '1 dia';
-    }
-    return `${dias} dias`;
-  }
-
-  obterCorPrazo(dataString: string, concluida: boolean): { background: string; border: string; text: string; labelBg: string; labelColor: string } {
-    if (concluida) {
-      return {
-        background: '#f0fdf4',
-        border: '1px solid #bbf7d0',
-        text: '#16a34a',
-        labelBg: '#dcfce7',
-        labelColor: '#166534'
-      };
-    }
-    const dias = this.obterDiasParaEntrega(dataString);
-    if (dias < 0) {
-      return {
-        background: '#fef2f2',
-        border: '1px solid #fecaca',
-        text: '#b91c1c',
-        labelBg: '#fee2e2',
-        labelColor: '#7f1d1d'
-      };
-    }
-    if (dias === 0) {
-      return {
-        background: '#fee2e2',
-        border: '1px solid #fca5a5',
-        text: '#b91c1c',
-        labelBg: '#fecaca',
-        labelColor: '#991b1b'
-      };
-    }
-    if (dias === 1) {
-      return {
-        background: '#fffbeb',
-        border: '1px solid #fcd34d',
-        text: '#b45309',
-        labelBg: '#fde68a',
-        labelColor: '#92400e'
-      };
-    }
-    return {
-      background: '#ecfdf5',
-      border: '1px solid #86efac',
-      text: '#15803d',
-      labelBg: '#bbf7d0',
-      labelColor: '#166534'
-    };
-  }
-
-  // Faz as contas automáticas da percentagem do progresso (0% a 100%)
-  atualizarProgresso() {
-    if (this.grupoDetalhado.subtarefas.length === 0) {
-      this.grupoDetalhado.progresso = 0;
+  // Função interna de contas (Atualiza o progresso global no Firebase)
+  async atualizarProgresso() {
+    if (!this.grupoDetalhado.subtarefas || this.grupoDetalhado.subtarefas.length === 0) {
+      if (this.grupoDetalhado.progresso !== 0) {
+        await this.grupoService.atualizarGrupo(this.grupoIdFirebase, { progresso: 0 });
+      }
       return;
     }
     
-    // Filtra quantas tarefas têm o visto "true" e faz a média matemática
     const concluidas = this.grupoDetalhado.subtarefas.filter((t: any) => t.concluida).length;
-    this.grupoDetalhado.progresso = Math.round((concluidas / this.grupoDetalhado.subtarefas.length) * 100);
+    const progressoNovo = Math.round((concluidas / this.grupoDetalhado.subtarefas.length) * 100);
+    
+    if (this.grupoDetalhado.progresso !== progressoNovo) {
+      await this.grupoService.atualizarGrupo(this.grupoIdFirebase, { progresso: progressoNovo });
+    }
+  }
+
+  obterDiasParaEntrega(dataString: string): number {
+    if (!dataString) return 0;
+    const prazo = new Date(dataString);
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    prazo.setHours(0, 0, 0, 0);
+    return Math.round((prazo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  obterTextoPrazo(dataString: string, concluida: boolean): string {
+    if (concluida) return 'Concluída';
+    const dias = this.obterDiasParaEntrega(dataString);
+    if (dias < 0) return 'Atrasada';
+    if (dias === 0) return 'Hoje';
+    if (dias === 1) return '1 dia';
+    return `${dias} dias`;
+  }
+
+  obterCorPrazo(dataString: string, concluida: boolean): any {
+    if (concluida) return { background: '#f0fdf4', border: '1px solid #bbf7d0', text: '#16a34a', labelBg: '#dcfce7', labelColor: '#166534' };
+    const dias = this.obterDiasParaEntrega(dataString);
+    if (dias < 0) return { background: '#fef2f2', border: '1px solid #fecaca', text: '#b91c1c', labelBg: '#fee2e2', labelColor: '#7f1d1d' };
+    if (dias === 0) return { background: '#fee2e2', border: '1px solid #fca5a5', text: '#b91c1c', labelBg: '#fecaca', labelColor: '#991b1b' };
+    if (dias === 1) return { background: '#fffbeb', border: '1px solid #fcd34d', text: '#b45309', labelBg: '#fde68a', labelColor: '#92400e' };
+    return { background: '#ecfdf5', border: '1px solid #86efac', text: '#15803d', labelBg: '#bbf7d0', labelColor: '#166534' };
   }
 }

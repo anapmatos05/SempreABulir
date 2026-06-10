@@ -1,62 +1,72 @@
-import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, collectionData, doc, docData, addDoc } from '@angular/fire/firestore';
+import { Injectable, EnvironmentInjector, inject, runInInjectionContext } from '@angular/core';
+import { 
+  Firestore, collection, collectionData, doc, docData, 
+  addDoc, query, where, getDocs, updateDoc, deleteDoc 
+} from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { query, getDocs, where } from '@angular/fire/firestore';
 
-@Injectable({
-  providedIn: 'root' // É esta linha mágica que transforma o ficheiro num Serviço!
-})
+@Injectable({ providedIn: 'root' })
 export class GrupoService {
-  private firestore: Firestore = inject(Firestore); // Injeta a base de dados da Ana
+  private firestore: Firestore = inject(Firestore);
+  private injector = inject(EnvironmentInjector);
 
-  constructor() { }
-
-  // 1. Ir buscar os dados principais do grupo (Nome, membros, etc)
   getDetalhesGrupo(grupoId: string): Observable<any> {
-    const grupoRef = doc(this.firestore, `grupos/${grupoId}`);
-    return docData(grupoRef, { idField: 'id' });
+    return docData(doc(this.firestore, `grupos/${grupoId}`), { idField: 'id' });
   }
 
-  // 2. Ouvir as subtarefas em TEMPO REAL (Se o Afonso alterar, tu vês logo)
   getSubtarefas(grupoId: string): Observable<any[]> {
-    const subtarefasRef = collection(this.firestore, `grupos/${grupoId}/subtarefas`);
-    return collectionData(subtarefasRef, { idField: 'id' });
-  }
-
-  // 3. Criar uma nova subtarefa e enviar para a nuvem
-  async adicionarSubtarefa(grupoId: string, dadosTarefa: any) {
-    const subtarefasRef = collection(this.firestore, `grupos/${grupoId}/subtarefas`);
-    return await addDoc(subtarefasRef, dadosTarefa);
-  }
-
-  // 4. Criar um novo grupo do zero na base de dados
-  async criarGrupo(dadosGrupo: any) {
-    const gruposRef = collection(this.firestore, 'grupos');
-    return await addDoc(gruposRef, dadosGrupo);
-  }
-
-  // Vai à coleção 'users' procurar nomes que comecem pelo que escreveste
-  async procurarUtilizadores(termo: string) {
-    if (!termo) return [];
-    
-    // Assumimos que a coleção da Ana se chama 'users'. Se for 'utilizadores', altera aqui!
-    const usersRef = collection(this.firestore, 'users'); 
-    
-    // Truque do Firebase para procurar palavras que começam com o "termo"
-    const q = query(
-      usersRef, 
-      where('nome', '>=', termo), 
-      where('nome', '<=', termo + '\uf8ff')
+    return collectionData(
+      collection(this.firestore, `grupos/${grupoId}/subtarefas`), 
+      { idField: 'id' }
     );
+  }
 
-    const querySnapshot = await getDocs(q);
-    const resultados: any[] = [];
-    
-    querySnapshot.forEach((doc) => {
-      // Guarda o ID único do Firebase junto com os dados da pessoa
-      resultados.push({ id: doc.id, ...doc.data() }); 
+  getGruposAtivos(): Observable<any[]> {
+    return collectionData(collection(this.firestore, 'grupos'), { idField: 'id' });
+  }
+
+  async adicionarSubtarefa(grupoId: string, dadosTarefa: any) {
+    return runInInjectionContext(this.injector, () => 
+      addDoc(collection(this.firestore, `grupos/${grupoId}/subtarefas`), dadosTarefa)
+    );
+  }
+
+  // 🚀 NOVO: Atualizar o estado de uma subtarefa (Visto / Não Visto)
+  async atualizarSubtarefa(grupoId: string, tarefaId: string, dados: any): Promise<void> {
+    return runInInjectionContext(this.injector, () => 
+      updateDoc(doc(this.firestore, `grupos/${grupoId}/subtarefas/${tarefaId}`), dados)
+    );
+  }
+
+  async criarGrupo(grupoData: any): Promise<void> {
+    await runInInjectionContext(this.injector, () => 
+      addDoc(collection(this.firestore, 'grupos'), grupoData)
+    );
+  }
+
+  // 🚀 NOVO: Atualizar um grupo (Nome, Membros, Chat, Ficheiros, Progresso)
+  async atualizarGrupo(grupoId: string, dados: any): Promise<void> {
+    return runInInjectionContext(this.injector, () => 
+      updateDoc(doc(this.firestore, `grupos/${grupoId}`), dados)
+    );
+  }
+
+  // 🚀 NOVO: Apagar um grupo inteiro da nuvem
+  async apagarGrupo(grupoId: string): Promise<void> {
+    return runInInjectionContext(this.injector, () => 
+      deleteDoc(doc(this.firestore, `grupos/${grupoId}`))
+    );
+  }
+
+  async procurarUtilizadores(termo: string): Promise<any[]> {
+    return runInInjectionContext(this.injector, async () => {
+      const q = query(
+        collection(this.firestore, 'utilizadores'),
+        where('nomeLower', '>=', termo.toLowerCase()),
+        where('nomeLower', '<=', termo.toLowerCase() + '\uf8ff')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     });
-
-    return resultados;
   }
 }

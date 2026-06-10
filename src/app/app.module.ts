@@ -1,29 +1,19 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { RouteReuseStrategy } from '@angular/router';
-import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
-import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-
-// Módulos essenciais para o funcionamento dos serviços de dados e rede
+import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { RouteReuseStrategy } from '@angular/router';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { HttpClientModule } from '@angular/common/http';
 
-// Firebase (A configuração da tua colega - Versão Compat)
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
-import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { firebaseConfig } from '../environments/firebase.config';
-
-// Firebase (A nossa configuração - Versão Modular)
+import { provideFirebaseApp, getApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
-import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 
-/**
- * Módulo raiz da aplicação (AppModule).
- * É aqui que registamos os módulos globais que estarão disponíveis
- * em toda a aplicação (persistência, chamadas HTTP e roteamento).
- */
+import { environment } from '../environments/environment';
+import { AppComponent } from './app.component';
+
 @NgModule({
   declarations: [AppComponent],
   imports: [
@@ -32,22 +22,15 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
     AppRoutingModule,
     IonicStorageModule.forRoot(),
     HttpClientModule,
-    
-    // Inicialização do Firebase da Ana
-    AngularFireModule.initializeApp(firebaseConfig),
+    AngularFireModule.initializeApp(environment.firebaseConfig),
     AngularFireAuthModule,
-    AngularFirestoreModule
   ],
-
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    
-    // O "Chassi" Moderno do Firebase:
-    provideFirebaseApp(() => initializeApp(firebaseConfig)),
-    
-    // O "Motor" Moderno da Base de Dados:
-    provideFirestore(() => getFirestore())
+    // ← AQUI em providers, não em imports
+    provideFirebaseApp(() => getApp()),
+    provideFirestore(() => getFirestore()),
   ],
-  bootstrap: [AppComponent],
+  bootstrap: [AppComponent]
 })
 export class AppModule {}

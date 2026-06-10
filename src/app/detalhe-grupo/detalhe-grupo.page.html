@@ -1,22 +1,11 @@
 <ion-header class="ion-no-border">
   <ion-toolbar style="--background: #f4c20d; padding: 8px 10px 4px 10px;">
-    
     <div class="ion-hide-md-down" style="display: flex; width: 100%; height: 100%; justify-content: space-between; align-items: flex-end;">
       <div style="display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 2px;">
         <strong style="font-size: 22px; color: #000; line-height: 1.1;">Agenda Académica</strong>
         <span style="font-size: 11px; color: #000; opacity: 0.7; line-height: 1;">ESTG - IPVC</span>
       </div>
-      <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; padding-bottom: 2px;">
-        <strong style="font-size: 16px; color: #000; line-height: 1.1;">Ana Matos</strong>
-        <span style="font-size: 11px; color: #000; opacity: 0.7; line-height: 1;">Aluno</span>
-      </div>
     </div>
-
-    <div class="ion-hide-md-up" style="display: flex; flex-direction: column; justify-content: center; padding-left: 5px; padding-bottom: 2px;">
-      <strong style="font-size: 20px; color: #000; line-height: 1.1;">Agenda Académica</strong>
-      <span style="font-size: 12px; color: #000; opacity: 0.7; line-height: 1;">ESTG - IPVC</span>
-    </div>
-
   </ion-toolbar>
 </ion-header>
 
@@ -30,9 +19,9 @@
   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
     <div>
       <h1 style="font-weight: bold; margin: 0 0 5px 0; font-size: 24px; color: #000; line-height: 1.2;">
-        {{ grupoDetalhado.nome }}
+        {{ grupoDetalhado?.nome || 'A carregar...' }}
       </h1>
-      <span style="font-size: 13px; color: #8c8c8c;">{{ grupoDetalhado.membros.length }} membros • {{ grupoDetalhado.subtarefas.length }} subtarefas</span>
+      <span style="font-size: 13px; color: #8c8c8c;">{{ grupoDetalhado?.membros?.length || 0 }} membros • {{ grupoDetalhado?.subtarefas?.length || 0 }} subtarefas</span>
     </div>
     
     <ion-button fill="clear" size="small" (click)="abrirEdicao(modalEdicao)" style="--color: var(--ion-color-laranja-destaque); margin: 0;">
@@ -41,9 +30,9 @@
   </div>
 
   <div style="display: flex; align-items: center; margin-bottom: 20px;">
-    <ion-progress-bar [value]="grupoDetalhado.progresso / 100" style="--background: #e0e0e0; --progress-background: var(--ion-color-laranja-destaque); height: 6px; border-radius: 3px; flex: 1; margin-right: 15px;"></ion-progress-bar>
+    <ion-progress-bar [value]="(grupoDetalhado?.progresso || 0) / 100" style="--background: #e0e0e0; --progress-background: var(--ion-color-laranja-destaque); height: 6px; border-radius: 3px; flex: 1; margin-right: 15px;"></ion-progress-bar>
     <div style="background: var(--ion-color-laranja-destaque); color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px;">
-      {{ grupoDetalhado.progresso }}% Completo
+      {{ grupoDetalhado?.progresso || 0 }}% Completo
     </div>
   </div>
 
@@ -115,34 +104,27 @@
   </div>
 
   <div *ngIf="abaAtiva === 'chat'" style="display: flex; flex-direction: column; height: 350px;">
+    
     <div style="flex: 1; overflow-y: auto; padding: 12px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px;">
+      
       <div *ngIf="conversaGrupo.length === 0" style="text-align: center; color: #8c8c8c; padding-top: 80px;">
         <ion-icon name="chatbubbles-outline" style="font-size: 42px; margin-bottom: 12px; color: #d4d4d4;"></ion-icon>
         <p style="margin: 0; font-size: 14px;">Sem conversas ainda. Escreve abaixo para começar.</p>
       </div>
 
-      <div *ngFor="let mensagem of conversaGrupo" style="margin-bottom: 15px; text-align: left;" [ngStyle]="{ 'text-align': mensagem.deMim ? 'right' : 'left' }">
-        <div *ngIf="!mensagem.deMim" style="margin-bottom: 4px; color: #666; font-size: 12px; font-weight: 600;">{{ mensagem.autor }}</div>
-        <div [style.background]="mensagem.deMim ? '#000000' : '#f1f1f1'"
-             [style.color]="mensagem.deMim ? '#ffffff' : '#000000'"
-             style="display: inline-block; padding: 12px 14px; border-radius: 16px; max-width: 80%; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+      <div *ngFor="let mensagem of conversaGrupo" style="margin-bottom: 15px;" [ngStyle]="{ 'text-align': mensagem.autor === nomeUtilizadorAtual ? 'right' : 'left' }">
+        
+        <div *ngIf="mensagem.autor !== nomeUtilizadorAtual" style="margin-bottom: 4px; color: #666; font-size: 12px; font-weight: 600;">
+          {{ mensagem.autor }}
+        </div>
+        
+        <div [style.background]="mensagem.autor === nomeUtilizadorAtual ? '#000000' : '#f1f1f1'"
+             [style.color]="mensagem.autor === nomeUtilizadorAtual ? '#ffffff' : '#000000'"
+             style="display: inline-block; text-align: left; padding: 12px 14px; border-radius: 16px; max-width: 80%; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
           {{ mensagem.texto }}
         </div>
+        
         <div style="font-size: 10px; color: #999; margin-top: 4px;">{{ mensagem.horario }}</div>
-      </div>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-        <span style="font-size: 12px; color: #666; font-weight: 600;">Enviar como:</span>
-        <div *ngFor="let autor of autoresChat" 
-             (click)="autorMensagem = autor"
-             [style.background]="autorMensagem === autor ? '#000' : '#f1f1f1'"
-             [style.color]="autorMensagem === autor ? '#fff' : '#000'"
-             [style.border]="autorMensagem === autor ? '2px solid #000' : '1px solid #e0e0e0'"
-             style="padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-          {{ autor }}
-        </div>
       </div>
     </div>
 
