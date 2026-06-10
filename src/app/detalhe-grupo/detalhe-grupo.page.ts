@@ -60,8 +60,7 @@ export class DetalheGrupoPage implements OnInit {
           this.nomeDoGrupo = grupoCloud.nome;
           this.grupoDetalhado = grupoCloud;
           this.grupoDetalhado.progresso = grupoCloud.progresso || 0;
-          this.grupoDetalhado.membros = this.normalizarMembros(grupoCloud.membros || []);
-          this.ficheirosPartilhados = grupoCloud.ficheirosPartilhados || [];
+          this.grupoDetalhado.membros = this.normalizarMembros(grupoCloud.membros || []);        
           
           // 🚀 LÓGICA DAS NOTIFICAÇÕES DE CHAT AQUI:
           const mensagensNuvem = grupoCloud.conversaGrupo || [];
@@ -92,6 +91,11 @@ export class DetalheGrupoPage implements OnInit {
           this.grupoDetalhado.subtarefas = tarefasCloud || [];
           this.atualizarProgresso(); 
         }
+      });
+
+      // OUVIR OS FICHEIROS EM TEMPO REAL
+      this.grupoService.getFicheiros(this.grupoIdFirebase).subscribe(ficheiros => {
+        this.ficheirosPartilhados = ficheiros || [];
       });
     }
   }
@@ -232,32 +236,37 @@ export class DetalheGrupoPage implements OnInit {
     this.novaMensagem = '';
   }
 
+  
   // 🚀 ADICIONAR FICHEIRO À NUVEM
-  async adicionarFicheiro() {
-    const nome = this.novoFicheiroNome.trim();
-    if (!nome) return;
-
-    const novoDoc = {
-      nome,
-      autor: this.novoFicheiroAutor.trim() || this.nomeUtilizadorAtual,
-      data: this.novoFicheiroData || new Date().toISOString().split('T')[0]
-    };
-
-    const novaListaFicheiros = [novoDoc, ...this.ficheirosPartilhados];
-    await this.grupoService.atualizarGrupo(this.grupoIdFirebase, { ficheirosPartilhados: novaListaFicheiros });
+  adicionarFicheiro() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '*/*';
     
-    this.novoFicheiroNome = '';
-    this.novoFicheiroAutor = '';
+    input.onchange = async (event: any) => {
+      const file: File = event.target.files[0];
+      if (!file) return;
+      
+      try {
+        await this.grupoService.uploadFicheiro(this.grupoIdFirebase, file, this.nomeUtilizadorAtual);
+        // ficheiros atualizam automaticamente via Observable
+      } catch (erro) {
+        console.error('Erro ao enviar ficheiro:', erro);
+      }
+    };
+    
+    input.click();
   }
 
   baixarFicheiro(ficheiro: any) {
-    alert(`Ação fictícia: baixar ${ficheiro.nome}`);
+    window.open(ficheiro.url, '_blank');
   }
 
   // 🚀 REMOVER FICHEIRO DA NUVEM
   async removerFicheiro(ficheiro: any) {
-    const novaListaFicheiros = this.ficheirosPartilhados.filter(f => f.nome !== ficheiro.nome);
-    await this.grupoService.atualizarGrupo(this.grupoIdFirebase, { ficheirosPartilhados: novaListaFicheiros });
+    if (confirm('Tens a certeza que queres apagar este ficheiro?')) {
+      await this.grupoService.removerFicheiro(this.grupoIdFirebase, ficheiro.id);
+    }
   }
 
   // Função interna de contas (Atualiza o progresso global no Firebase)
@@ -328,5 +337,13 @@ export class DetalheGrupoPage implements OnInit {
       ]
     });
     await toast.present();
+  }
+
+  obterIconeFicheiro(nome: string): string {
+    if (!nome) return 'document';
+    const n = nome.toLowerCase();
+    if (n.endsWith('.pdf')) return 'document-text';
+    if (n.endsWith('.jpg') || n.endsWith('.jpeg') || n.endsWith('.png')) return 'image';
+    return 'document';
   }
 }
