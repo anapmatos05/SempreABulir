@@ -3,7 +3,7 @@
 Este documento mostra o que foi feito em cada sessão de trabalho, os problemas que apareceram, como os resolvemos e os commits associados.
 
 ---
-
+As sessões 1 a 7 foram desenvolvidas pela Ana Matos.
 ##  Sessão 1 – Início do Projeto
 
 ###  Objetivo
