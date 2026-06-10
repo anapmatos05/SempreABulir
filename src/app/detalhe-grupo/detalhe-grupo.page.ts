@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { NavController, ToastController } from '@ionic/angular';
 import { GrupoService } from '../services/grupo';
 import { AuthService } from '../services/auth.service';
 
@@ -20,6 +20,7 @@ export class DetalheGrupoPage implements OnInit {
   };
 
   public novoMembroNome: string = '';
+  public resultadosPesquisa: any[] = [];
   public grupoEmEdicao: any = {};
   public novaSubtarefa = { titulo: '', responsavel: '', data: '' };
   
@@ -36,7 +37,8 @@ export class DetalheGrupoPage implements OnInit {
     private route: ActivatedRoute,
     private navCtrl: NavController,
     private grupoService: GrupoService,
-    private authService: AuthService
+    private authService: AuthService,
+    private toastController: ToastController
   ) { }
 
   ngOnInit() {
@@ -88,7 +90,8 @@ export class DetalheGrupoPage implements OnInit {
   }
 
   voltarParaGrupos() {
-    this.navCtrl.navigateBack('/folder/grupos', { animated: false });
+    // Deixa o Ionic gerir o histórico e a animação naturalmente
+    this.navCtrl.back(); 
   }
 
   obterIniciais(nome: string | any): string {
@@ -108,6 +111,37 @@ export class DetalheGrupoPage implements OnInit {
       this.grupoEmEdicao.membros.push({ nome: nomeLimpo, email: emailGerado });
       this.novoMembroNome = '';
     }
+  }
+
+  // 🚀 Pesquisar utilizadores na base de dados
+  async pesquisarMembros() {
+    const termo = this.novoMembroNome.trim();
+    if (termo.length < 2) {
+      this.resultadosPesquisa = [];
+      return;
+    }
+    try {
+      this.resultadosPesquisa = await this.grupoService.procurarUtilizadores(termo);
+    } catch (erro) {
+      console.error('Erro ao procurar utilizadores:', erro);
+    }
+  }
+
+  // 🚀 Adicionar o utilizador clicado à lista de edição
+  selecionarMembroPesquisa(utilizadorEncontrado: any) {
+    // Verifica se já está no grupo para não haver pessoas duplicadas
+    const jaExiste = this.grupoEmEdicao.membros.find((m: any) => m.email === utilizadorEncontrado.email || m.nome === utilizadorEncontrado.nome);
+    
+    if (!jaExiste) {
+      this.grupoEmEdicao.membros.push({
+        nome: utilizadorEncontrado.nome,
+        email: utilizadorEncontrado.email
+      });
+    }
+    
+    // Limpa a barra de pesquisa e esconde os resultados
+    this.novoMembroNome = '';
+    this.resultadosPesquisa = [];
   }
 
   removerMembroEdicao(index: number) {
@@ -234,5 +268,31 @@ export class DetalheGrupoPage implements OnInit {
     if (dias === 0) return { background: '#fee2e2', border: '1px solid #fca5a5', text: '#b91c1c', labelBg: '#fecaca', labelColor: '#991b1b' };
     if (dias === 1) return { background: '#fffbeb', border: '1px solid #fcd34d', text: '#b45309', labelBg: '#fde68a', labelColor: '#92400e' };
     return { background: '#ecfdf5', border: '1px solid #86efac', text: '#15803d', labelBg: '#bbf7d0', labelColor: '#166534' };
+  }
+
+  openProfile() {
+    this.navCtrl.navigateForward('/profile');
+  }
+
+  // 🚀 Função para desenhar a notificação no ecrã
+  async mostrarNotificacao(autor: string, texto: string) {
+    const toast = await this.toastController.create({
+      header: `Nova mensagem de ${autor}`,
+      message: texto,
+      duration: 3500, // Desaparece após 3.5 segundos
+      position: 'top',
+      color: 'dark',
+      buttons: [
+        {
+          text: 'Ver',
+          role: 'cancel',
+          handler: () => {
+            // Se o utilizador clicar em "Ver", a app muda logo para a aba do chat!
+            this.abaAtiva = 'chat';
+          }
+        }
+      ]
+    });
+    await toast.present();
   }
 }

@@ -5,9 +5,10 @@ import { NavController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { DataService, NovoPrazo } from '../services/data';
 import { AuthService } from '../services/auth.service';
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { GrupoService } from '../services/grupo';
 import { Observable } from 'rxjs';
+
 
 @Component({
   selector: 'app-folder',
@@ -77,10 +78,10 @@ export class FolderPage implements OnInit {
     this.authService.currentUser$.pipe(
       filter(user => user !== null && user !== undefined)
     ).subscribe(user => {
+      
       if (user?.displayName && user.displayName.trim() !== '') {
         this.userDisplayName = user.displayName;
       } else if (user?.email) {
-        // Fallback: Se não houver displayName, usa a parte antes do '@' do email
         this.userDisplayName = user.email.split('@')[0];
       } else {
         this.userDisplayName = 'Utilizador';
@@ -89,10 +90,24 @@ export class FolderPage implements OnInit {
       if (user?.email) {
         this.userEmail = user.email;
       }
-    });
 
-    // Ligar o tubo de oxigénio à nuvem para receber os grupos em tempo real!
-    this.gruposNuvem$ = this.grupoService.getGruposAtivos();
+      // 🚀 A MAGIA DO FILTRO DE PRIVACIDADE:
+      // Agora a app só pede os grupos DEPOIS de saber o teu nome/email!
+      this.gruposNuvem$ = this.grupoService.getGruposAtivos().pipe(
+        map(grupos => {
+          // Filtra a lista inteira do Firebase e devolve apenas os teus
+          return grupos.filter(grupo => {
+            if (!grupo.membros) return false;
+            
+            // Verifica se o teu email ou nome está na lista de membros deste grupo específico
+            return grupo.membros.some((membro: any) => 
+              membro.email === this.userEmail || membro.nome === this.userDisplayName
+            );
+          });
+        })
+      );
+
+    });
   }
 
   // ==========================================
@@ -166,14 +181,21 @@ export class FolderPage implements OnInit {
   }
 
   async guardarNovoGrupo(modal: any) {
-    if (this.novoGrupo.nome.trim() === '' || this.novoGrupo.disciplina.trim() === '') {
+    if (this.novoGrupo.nome.trim() === '' || this.novoGrupo.disciplina === '') {
       alert('Por favor, preencha o Nome do Grupo e a Disciplina.');
       return;
     }
 
-    if (this.novoGrupo.membros.length === 0) {
-      alert('O grupo não pode estar vazio. Adicione pelo menos um membro.');
-      return;
+    // 🚀 A CORREÇÃO: Garante que o criador (Tu) fica sempre no grupo automaticamente!
+    const euJaEstouNoGrupo = this.novoGrupo.membros.some((m: any) => 
+      m.email === this.userEmail || m.nome === this.userDisplayName
+    );
+    
+    if (!euJaEstouNoGrupo) {
+      this.novoGrupo.membros.push({
+        nome: this.userDisplayName,
+        email: this.userEmail
+      });
     }
 
     // Prepara o pacote para a Nuvem
@@ -183,16 +205,18 @@ export class FolderPage implements OnInit {
       membros: [...this.novoGrupo.membros],
       progresso: 0,
       criadoEm: new Date().toISOString()
-      // Removido o 'subtarefas: []' daqui porque no Firebase as subtarefas 
-      // vão viver na sua própria subcoleção (como vimos no detalhe-grupo)
     };
 
     try {
-      // Dispara para o Firebase!
       await this.grupoService.criarGrupo(grupoParaGravar);
       
-      // Limpa o formulário e fecha o modal
-      this.novoGrupo = { nome: '', disciplina: '', membros: ['Ana Matos'] };
+      // Limpa o formulário e fecha o modal (já te coloca como membro base para o próximo)
+      this.novoGrupo = { 
+        nome: '', 
+        disciplina: '', 
+        membros: [{ nome: this.userDisplayName, email: this.userEmail }] 
+      };
+      
       modal.dismiss();
     } catch (erro) {
       console.error('Erro ao criar grupo no Firebase:', erro);

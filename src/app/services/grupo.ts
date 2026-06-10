@@ -58,15 +58,29 @@ export class GrupoService {
     );
   }
 
+  // 🚀 Pesquisa Estilo Outlook (Ignora maiúsculas/minúsculas e pesquisa por email também!)
   async procurarUtilizadores(termo: string): Promise<any[]> {
     return runInInjectionContext(this.injector, async () => {
-      const q = query(
-        collection(this.firestore, 'utilizadores'),
-        where('nomeLower', '>=', termo.toLowerCase()),
-        where('nomeLower', '<=', termo.toLowerCase() + '\uf8ff')
-      );
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      try {
+        // 1. Vai buscar a lista de todos os utilizadores à base de dados
+        const snapshot = await getDocs(collection(this.firestore, 'utilizadores'));
+        const todosUtilizadores = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // 2. Limpa o que escreveste (passa tudo a minúsculas)
+        const termoLimpo = termo.toLowerCase().trim();
+        
+        // 3. Filtra a lista inteligentemente!
+        return todosUtilizadores.filter((u: any) => {
+          const nome = (u.nome || '').toLowerCase();
+          const email = (u.email || '').toLowerCase();
+          
+          // Se o nome OU o email contiverem as letras que escreveste, mostra a pessoa!
+          return nome.includes(termoLimpo) || email.includes(termoLimpo);
+        });
+      } catch (erro) {
+        console.error('Erro na pesquisa estilo Outlook:', erro);
+        return [];
+      }
     });
   }
 }
