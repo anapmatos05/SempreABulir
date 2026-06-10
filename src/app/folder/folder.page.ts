@@ -22,6 +22,7 @@ export class FolderPage implements OnInit {
   // Variáveis de calendário e seleção
   public dataSelecionadaCalendario: string = new Date().toISOString();
   public tarefaSelecionada: any = null;
+  datasComTarefas: any[] = [];
 
   // Variáveis de filtragem
   public termoPesquisa: string = '';
@@ -67,6 +68,7 @@ export class FolderPage implements OnInit {
       const idRota = params.get('id') || 'calendario';
       this.folder = idRota.toLowerCase();
       this.gerarSemanaAtual();
+      this.prepararCalendario();
     });
 
     // CORREÇÃO: Removeu-se o take(1) para permitir atualizações em tempo real assim que o Firebase carrega o user
@@ -227,7 +229,7 @@ export class FolderPage implements OnInit {
   }
 
   // ==========================================
-  // PESQUISA DE MEMBROS (NOVO)
+  // PESQUISA DE MEMBROS 
   // ==========================================
   public resultadosPesquisa: any[] = [];
 
@@ -465,6 +467,62 @@ export class FolderPage implements OnInit {
   // LÓGICA DO CALENDÁRIO
   // ==========================================
   
+  // Função que transforma as tuas tarefas nas marcações amarelas do calendário
+  prepararCalendario() {
+    const marcas: any[] = [];
+    
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    // O nosso truque para aceder ao serviço
+    const servicoDados = this.dataService as any;
+    
+    // BINGO! O nome correto que descobrimos na consola: listaDePrazos
+    const todasAsTarefas = servicoDados.listaDePrazos || [];
+
+    if (todasAsTarefas && todasAsTarefas.length > 0) {
+      todasAsTarefas.forEach((tarefa: any) => {
+        const dataTarefa = tarefa.data || tarefa.prazo || '';
+        
+        if (dataTarefa) {
+          const dataFormatada = dataTarefa.split('T')[0];
+          
+          if (!marcas.some(m => m.date === dataFormatada)) {
+            const dataObj = new Date(dataTarefa);
+            dataObj.setHours(0, 0, 0, 0);
+            
+            const diferencaTempo = dataObj.getTime() - hoje.getTime();
+            const diasEmFalta = Math.ceil(diferencaTempo / (1000 * 3600 * 24));
+            
+            let corFundo = '#fff8d6'; 
+            let corTexto = '#b28c00'; 
+
+            if (diasEmFalta <= 0) {
+              corFundo = '#ffebee'; // Vermelho pastel (Urgente / Hoje ou Expirado)
+              corTexto = '#c62828';
+            } 
+            else if (diasEmFalta > 0 && diasEmFalta <= 3) {
+              corFundo = '#fff8d6'; // Amarelo pastel (Próximos 3 dias)
+              corTexto = '#b28c00'; 
+            } 
+            else {
+              corFundo = '#e8f5e9'; // Verde pastel (Com tempo)
+              corTexto = '#2e7d32'; 
+            }
+
+            marcas.push({
+              date: dataFormatada,
+              textColor: corTexto,
+              backgroundColor: corFundo
+            });
+          }
+        }
+      });
+    }
+
+    this.datasComTarefas = marcas;
+  }
+
   get tarefasDoDiaSelecionado(): any[] {
     if (!this.dataSelecionadaCalendario) return [];
     const dataLimpa = this.dataSelecionadaCalendario.split('T')[0];

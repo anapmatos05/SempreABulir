@@ -146,7 +146,11 @@
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
               <h3 style="font-weight: bold; margin: 0; color: #333; font-size: 16px;">Calendário Semanal</h3>
-              <ion-icon name="expand-outline" (click)="modalCalendario.present()" style="color: #f4c20d; font-size: 20px; cursor: pointer;"></ion-icon>
+              <ion-icon 
+                name="expand-outline" 
+                (click)="prepararCalendario(); modalCalendario.present()" 
+                style="color: #f4c20d; font-size: 20px; cursor: pointer;">
+              </ion-icon>
             </div>
             
             <div style="display: flex; justify-content: space-between; gap: 6px; width: 100%;">
@@ -585,8 +589,41 @@
           locale="pt-PT"
           mode="md"
           [(ngModel)]="dataSelecionadaCalendario"
+          [highlightedDates]="datasComTarefas"
           style="width: 100%; max-width: 360px; min-height: 360px;">
         </ion-datetime>
+      </div>
+
+      <div style="margin-top: 15px; padding: 0 5px; max-height: 200px; overflow-y: auto;">
+        
+        <div *ngIf="tarefasDoDiaSelecionado && tarefasDoDiaSelecionado.length > 0">
+          
+          <div style="padding: 12px; border-radius: 12px; background: #ffebee; color: #c62828; font-weight: bold; display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(198, 40, 40, 0.05);">
+            <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
+            <span style="font-size: 14px;">Tens {{ tarefasDoDiaSelecionado.length }} tarefa(s) para este dia:</span>
+          </div>
+
+          <div *ngFor="let t of tarefasDoDiaSelecionado" 
+               style="background: #fafafa; border-left: 4px solid #f4c20d; border-radius: 6px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            
+            <div style="display: flex; flex-direction: column; gap: 2px; text-align: left;">
+              <strong style="color: #222; font-size: 14px;">{{ t.titulo }}</strong>
+              <span style="color: #666; font-size: 11px; font-weight: 500;">{{ t.disciplina }}</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 4px; color: #555; background: #eaeaea; padding: 4px 8px; border-radius: 6px;">
+              <ion-icon name="time-outline" style="font-size: 14px;"></ion-icon>
+              <strong style="font-size: 12px;">{{ t.hora }}</strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div *ngIf="!tarefasDoDiaSelecionado || tarefasDoDiaSelecionado.length === 0" 
+             style="padding: 15px; border-radius: 12px; background: #f5f5f5; color: #777; text-align: center; font-size: 14px; font-weight: 500;">
+          Sem tarefas registadas para este dia.
+        </div>
 
       </div>
       
@@ -595,12 +632,13 @@
           (click)="modalCalendario.dismiss()" 
           style="width: 100%; padding: 14px; border-radius: 10px; border: none; background: #f4c20d; color: #000; font-weight: bold; font-size: 15px; cursor: pointer;"
         >
-          Voltar à Agenda
+          Voltar
         </button>
       </div>
     </ion-content>
   </ng-template>
 </ion-modal>
+
 <ion-modal #modalDetalheTarefa>
   <ng-template>
     <ion-header class="ion-no-border">
